@@ -19,3 +19,6 @@ ventas/propuestas/
 .claude/
 .vscode/
 .idea/
+
+# Notas privadas de contexto (no se publican)
+CONTEXTO.md
