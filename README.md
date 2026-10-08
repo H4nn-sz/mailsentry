@@ -1,5 +1,7 @@
 # MailSentry · Detector de phishing para empresas
 
+**Página del producto:** https://h4nn-sz.github.io/mailsentry/
+
 Programa en Python que vigila los correos de la empresa, detecta phishing con un motor de
 5 capas más un modelo de IA que aprende de sus correcciones, y muestra todo en un panel web:
 cuántos ataques se recibieron, de qué tipo, a quién atacaron, qué marcas imitaron y qué hacer.
@@ -171,6 +173,11 @@ python ventas/generar_propuesta.py "Comercial Ejemplo S.A.C." --contacto "Ana To
 | Buzón de reportes del personal | Botón "Reportar phishing" para Outlook |
 | VirusTotal, feeds | Antigüedad de dominios (RDAP), lectura de códigos QR, análisis del sitio enlazado |
 | Webhook a Teams/Slack | Envío a SIEM, multiempresa |
+
+## Licencia
+
+Código visible como portafolio; **todos los derechos reservados**. No se permite usarlo, copiarlo ni
+ofrecerlo como servicio sin autorización escrita. Ver [LICENSE](LICENSE).
 
 ## Estructura
 
