@@ -186,7 +186,8 @@
       <a class="btn btn-chico" href="{{ url_for('panel.correos', veredicto='amenazas', periodo=datos.periodo, buzon=buzon) }}">Ver todas</a>
     </header>
     {% if datos.recientes %}
-    <div class="tabla-env"><table>
+    <div class="tabla-env"><table class="tabla-compacta">
+      <colgroup><col style="width:62px"><col><col style="width:16%"><col style="width:20%"><col style="width:96px"></colgroup>
       <thead><tr><th>Fecha</th><th>Correo</th><th>Para</th><th>Tipo</th><th>Riesgo</th></tr></thead>
       <tbody>
       {% for r in datos.recientes %}

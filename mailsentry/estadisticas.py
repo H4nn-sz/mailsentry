@@ -192,7 +192,8 @@ def calcular(s: Session, config: Config, periodo: str = "30d", buzon: str | None
         "hasta": a_local(hasta, tz).strftime("%d/%m/%Y"),
         "totales": _totales(filas),
         # Sin correos en el periodo anterior no hay comparación honesta posible
-        "previo": _totales(previas) if previas else None,
+        # (si el periodo anterior casi no tiene datos, p. ej. recién se instaló, la comparación engaña)
+        "previo": _totales(previas) if previas and len(previas) >= 0.2 * max(1, len(filas)) else None,
         "serie": _serie(filas, a_local(desde_efectivo, tz).date(), a_local(hasta, tz).date(), tz),
         "categorias": [{"clave": k, "etiqueta": CATEGORIAS.get(k, k), "valor": v} for k, v in categorias.most_common()],
         "objetivos": [{**persona(k), "valor": v} for k, v in objetivos.most_common(8)],

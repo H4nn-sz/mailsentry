@@ -283,6 +283,11 @@ tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: rgba(255, 255, 255, .025); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .celda-asunto { max-width: 380px; }
+/* En el panel la tabla de últimas amenazas debe caber sin scroll horizontal */
+.tabla-compacta { table-layout: fixed; }
+.tabla-compacta .celda-asunto { max-width: none; }
+.tabla-compacta td, .tabla-compacta th { padding-left: 8px; padding-right: 8px; }
+.tabla-compacta .etq { white-space: normal; }
 .celda-asunto a { color: var(--texto); font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .celda-asunto small { color: var(--texto-3); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .paginacion { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 12px; color: var(--texto-2); }
