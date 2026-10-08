@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Personal{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Personal de la empresa</h1>
+    <p>El área permite ver qué departamentos atacan más. Marque como <b>directivo</b> a quienes suelen ser suplantados
+      (gerencia, finanzas): MailSentry detectará cuando alguien use su nombre desde otra dirección.</p>
+  </div>
+</div>
+
+{% if tiene_rol('analista') %}
+<form class="tarjeta plana filtros" method="post" style="margin-bottom:16px">
+  {{ csrf_input() }}
+  <input type="email" name="email" placeholder="correo@empresa.com" required aria-label="Correo" style="flex:1 1 200px">
+  <input type="text" name="nombre" placeholder="Nombre y apellido" aria-label="Nombre" style="flex:1 1 180px">
+  <input type="text" name="departamento" placeholder="Área" list="areas" aria-label="Área" style="flex:1 1 130px">
+  <input type="text" name="cargo" placeholder="Cargo" aria-label="Cargo" style="flex:1 1 130px">
+  <label class="check"><input type="checkbox" name="es_vip" value="1"> Directivo</label>
+  <button class="btn btn-primario" type="submit">Agregar</button>
+</form>
+{% endif %}
+<datalist id="areas">{% for d in departamentos %}<option value="{{ d }}">{% endfor %}</datalist>
+
+<section class="tarjeta">
+  {% if empleados %}
+  <div class="tabla-env"><table>
+    <thead><tr><th>Correo</th><th>Nombre</th><th>Área</th><th>Cargo</th><th>Directivo</th><th class="num">Amenazas (90 días)</th>{% if tiene_rol('analista') %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for e in empleados %}
+      {% set f = 'f' ~ e.id %}
+      <tr>
+        <td><a href="{{ url_for('panel.correos', destinatario=e.email) }}">{{ e.email }}</a></td>
+        {% if tiene_rol('analista') %}
+        <td><input form="{{ f }}" type="text" name="nombre" value="{{ e.nombre }}" aria-label="Nombre de {{ e.email }}" style="width:100%"></td>
+        <td><input form="{{ f }}" type="text" name="departamento" value="{{ e.departamento }}" list="areas" aria-label="Área" style="width:100%"></td>
+        <td><input form="{{ f }}" type="text" name="cargo" value="{{ e.cargo }}" aria-label="Cargo" style="width:100%"></td>
+        <td><label class="check"><input form="{{ f }}" type="checkbox" name="es_vip" value="1" {{ 'checked' if e.es_vip }}> Sí</label></td>
+        {% else %}
+        <td>{{ e.nombre }}</td><td>{{ e.departamento }}</td><td>{{ e.cargo }}</td>
+        <td>{% if e.es_vip %}<span class="etq etq-vip">Directivo</span>{% endif %}</td>
+        {% endif %}
+        <td class="num">{{ conteos.get(e.email, 0) }}</td>
+        {% if tiene_rol('analista') %}
+        <td style="white-space:nowrap">
+          <form id="{{ f }}" method="post" style="display:inline">{{ csrf_input() }}<input type="hidden" name="id" value="{{ e.id }}"><input type="hidden" name="email" value="{{ e.email }}"><button class="btn btn-chico" type="submit">Guardar</button></form>
+          <form method="post" action="{{ url_for('panel.eliminar_empleado', empleado_id=e.id) }}" style="display:inline" data-confirmar="¿Eliminar a {{ e.email }}?">{{ csrf_input() }}<button class="btn btn-chico btn-peligro" type="submit" aria-label="Eliminar {{ e.email }}">✕</button></form>
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="vacio">Aún no hay personal registrado. Se agrega automáticamente al recibir correos dirigidos a sus dominios.</div>
+  {% endif %}
+</section>
+{% endblock %}

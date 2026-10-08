@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{% block titulo %}Panel{% endblock %} · MailSentry</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/icono.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="{{ 'con-intro' if mostrar_intro }}">
+{% if mostrar_intro %}{% include "_intro.html" %}<script src="{{ url_for('static', filename='js/intro.js') }}" defer></script>{% endif %}
+{% set seccion = request.endpoint or '' %}
+{% set iconos = {
+  'panel.inicio': 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+  'panel.correos': 'M3 5h18v14H3zM3 6l9 7 9-7',
+  'panel.analizar': 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5',
+  'panel.personal': 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-6 7-6s7 2 7 6M16 3.5a4 4 0 0 1 0 7.5M22 21c0-3-2-5-4.5-5.7',
+  'panel.listas': 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01',
+  'panel.buzones': 'M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5',
+  'panel.modelo': 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  'panel.reporte': 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5',
+  'panel.usuarios': 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'} %}
+{% macro enlace(endpoint, texto, icono) -%}
+  {%- set actual = request.endpoint or '' -%}
+  {%- set activo = actual == endpoint or (endpoint == 'panel.correos' and actual == 'panel.correo') -%}
+  <a href="{{ url_for(endpoint) }}" class="{{ 'activo' if activo }}" {% if activo %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ icono }}"/></svg>{{ texto }}</a>
+{%- endmacro %}
+<div class="app {{ '' if usuario_actual else 'sin-lateral' }}">
+{% if usuario_actual %}
+<aside class="lateral" aria-label="Menú principal">
+  <a class="marca" href="{{ url_for('panel.inicio') }}" aria-label="MailSentry, inicio">
+    <img class="logo" src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="46" height="28">
+    <span>MailSentry</span>
+  </a>
+  <div class="lateral-seccion">Monitoreo</div>
+  <nav aria-label="Monitoreo">
+    {{ enlace('panel.inicio', 'Panel', iconos['panel.inicio']) }}
+    {{ enlace('panel.correos', 'Correos', iconos['panel.correos']) }}
+    {% if tiene_rol('analista') %}{{ enlace('panel.analizar', 'Analizar', iconos['panel.analizar']) }}{% endif %}
+    {{ enlace('panel.reporte', 'Reporte', iconos['panel.reporte']) }}
+  </nav>
+  <div class="lateral-seccion">Gestión</div>
+  <nav aria-label="Gestión">
+    {{ enlace('panel.personal', 'Personal', iconos['panel.personal']) }}
+    {{ enlace('panel.listas', 'Listas', iconos['panel.listas']) }}
+    {{ enlace('panel.buzones', 'Buzones', iconos['panel.buzones']) }}
+    {{ enlace('panel.modelo', 'Modelo de IA', iconos['panel.modelo']) }}
+    {% if tiene_rol('admin') %}{{ enlace('panel.usuarios', 'Usuarios', iconos['panel.usuarios']) }}{% endif %}
+  </nav>
+  <div class="lateral-pie">
+    <div class="estado-sistema">
+      {% if buzones_vigilados %}
+        <b><span class="punto-vivo"></span>Protección activa</b>Vigilando {{ buzones_vigilados }} buzón{{ '' if buzones_vigilados == 1 else 'es' }}
+      {% else %}
+        <b><span class="punto-vivo inactivo"></span>Sin buzones conectados</b>Conecte el correo de la empresa en <a href="{{ url_for('panel.buzones') }}">Buzones</a>
+      {% endif %}
+    </div>
+    <div class="usuario">
+      <span class="avatar" aria-hidden="true">{{ ((usuario_actual.nombre or usuario_actual.usuario).split() | map('first') | join)[:2] | upper }}</span>
+      <span class="usuario-datos"><b>{{ usuario_actual.nombre or usuario_actual.usuario }}</b><small>{{ NOMBRES_ROL[usuario_actual.rol] }}</small></span>
+      <form method="post" action="{{ url_for('auth.salir') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf() }}">
+        <button class="btn btn-icono" type="submit" title="Cerrar sesión" aria-label="Cerrar sesión">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
+{% endif %}
+<div class="principal">
+<main class="contenido">
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}
+      <div class="aviso aviso-{{ categoria }}" role="{{ 'alert' if categoria == 'error' else 'status' }}"><div>{{ mensaje }}</div></div>
+    {% endfor %}
+  {% endwith %}
+  {% block contenido %}{% endblock %}
+</main>
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/graficos.js') }}"></script>
+{% block scripts_previos %}{% endblock %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

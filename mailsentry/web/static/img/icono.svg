@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Ícono de MailSentry (ojo de frente, versión simplificada legible a 16 px) -->
+  <rect width="32" height="32" rx="7" fill="#0a0a0a"/>
+  <path d="M2 16 C9 7.5 23 7.5 30 16 C23 24.5 9 24.5 2 16 Z" fill="#f2f2f2"/>
+  <circle cx="16" cy="16" r="6.4" fill="#0a0a0a"/>
+  <g stroke="#fff" stroke-width="1.1" transform="translate(16 16)">
+    <line x1="0" y1="-3.2" x2="0" y2="-5.2"/><line x1="0" y1="3.2" x2="0" y2="5.2"/>
+    <line x1="-3.2" y1="0" x2="-5.2" y2="0"/><line x1="3.2" y1="0" x2="5.2" y2="0"/>
+  </g>
+  <circle cx="16" cy="16" r="2.3" fill="#fff"/>
+</svg>

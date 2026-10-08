@@ -1,0 +1,34 @@
+# ==============================================================
+#  Datos para las propuestas comerciales de MailSentry
+#  Copie este archivo como ventas/propuesta.toml y complételo.
+#  (propuesta.toml no se sube a GitHub: puede contener datos fiscales.)
+# ==============================================================
+
+[proveedor]
+nombre = "Tu Nombre"                 # quien firma la propuesta
+cargo = "Especialista en ciberseguridad"
+empresa = ""                         # razón social, si facturas como empresa
+ruc = ""
+correo = "tu-correo@ejemplo.com"
+telefono = "+51 900 000 000"
+web = "https://tu-sitio.com"
+
+[precios]
+# Valores de EJEMPLO: defina los suyos después de investigar el mercado.
+moneda = "S/"
+igv_incluido = false                 # false = se indica "más IGV"
+validez_dias = 30
+permanencia_meses = 6                # duración mínima del servicio continuo
+
+[precios.diagnostico]
+pago_unico = 0                       # plan Diagnóstico
+
+[precios.continua]
+instalacion = 0                      # pago único de implementación
+por_buzon_mes = 0                    # mensualidad por buzón vigilado
+minimo_mes = 0                       # mensualidad mínima
+
+[precios.empresa]
+instalacion = 0
+por_buzon_mes = 0
+minimo_mes = 0

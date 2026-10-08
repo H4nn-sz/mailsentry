@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Propuesta MailSentry · {{ empresa }}</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9e9e6; font: 10.5pt/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1b1b1b;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .hoja { width: 210mm; min-height: 297mm; margin: 10mm auto; background: #fff; padding: 22mm 20mm 20mm; position: relative; box-shadow: 0 4px 24px rgba(0,0,0,.12); page-break-after: always; }
+  .hoja:last-child { page-break-after: auto; }
+  @media print { body { background: #fff; } .hoja { margin: 0; box-shadow: none; } .instrucciones { display: none; } }
+  .instrucciones { max-width: 210mm; margin: 10mm auto 0; background: #111; color: #eee; padding: 10px 16px; border-radius: 8px; font-size: 10pt; }
+
+  /* Portada */
+  .portada { background: #070707; color: #fff; display: flex; flex-direction: column; padding: 26mm 22mm; }
+  .portada .logo { width: 70mm; margin: 30mm 0 14mm; filter: drop-shadow(0 0 18px rgba(255,255,255,.25)); }
+  .portada .etiqueta { color: #9a9a9a; letter-spacing: .2em; text-transform: uppercase; font-size: 8.5pt; font-weight: 700; }
+  .portada h1 { font-size: 30pt; line-height: 1.1; margin: 6mm 0 4mm; letter-spacing: -.02em; }
+  .portada .para { font-size: 14pt; color: #e8e8e8; }
+  .portada .para b { color: #ff9a5c; }
+  .portada .datos { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; border-top: 1px solid #333; padding-top: 6mm; font-size: 9.5pt; color: #bdbdbd; }
+  .portada .datos b { display: block; color: #fff; font-size: 10.5pt; }
+
+  /* Interior */
+  .cabecera-hoja { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e3e3e3; padding-bottom: 4mm; margin-bottom: 8mm; font-size: 8.5pt; color: #8a8a8a; }
+  .cabecera-hoja img { width: 18mm; background: #070707; border-radius: 2mm; padding: 1.2mm 2mm; }
+  h2 { font-size: 16pt; margin: 0 0 4mm; letter-spacing: -.01em; }
+  h2 .n { color: #e5672b; font-family: ui-monospace, Consolas, monospace; font-size: 11pt; margin-right: 3mm; }
+  h3 { font-size: 11.5pt; margin: 6mm 0 2mm; }
+  p { margin: 0 0 3mm; }
+  .seccion { margin-bottom: 9mm; }
+  .tarjetas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 4mm; }
+  .tarjetas > div { border: 1px solid #e3e3e3; border-radius: 3mm; padding: 4mm; font-size: 9.5pt; }
+  .tarjetas b { display: block; margin-bottom: 1mm; font-size: 10pt; }
+  ul { margin: 2mm 0 3mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0; font-size: 10pt; }
+  th { text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; color: #777; border-bottom: 1.5px solid #1b1b1b; padding: 2.5mm 2mm; }
+  td { border-bottom: 1px solid #e6e6e6; padding: 3mm 2mm; vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { border-bottom: none; font-weight: 700; font-size: 11pt; }
+  .nota { font-size: 9pt; color: #6b6b6b; }
+  .aviso { background: #fff4ec; border-left: 3px solid #e5672b; padding: 3mm 4mm; font-size: 9.5pt; margin: 3mm 0; }
+  .cronograma { display: grid; grid-template-columns: 22mm 1fr; gap: 2mm 4mm; font-size: 10pt; }
+  .cronograma b { color: #e5672b; }
+  .firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 14mm; margin-top: 22mm; }
+  .firmas div { border-top: 1px solid #1b1b1b; padding-top: 2mm; font-size: 9.5pt; }
+  .pie-hoja { position: absolute; bottom: 10mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; font-size: 8pt; color: #9a9a9a; }
+</style>
+</head>
+<body>
+<div class="instrucciones">Para guardar como PDF: <b>Ctrl+P</b> → Destino «Guardar como PDF» → Márgenes «Ninguno» → activar «Gráficos de fondo».</div>
+
+<!-- Portada -->
+<section class="hoja portada">
+  <div class="etiqueta">Propuesta comercial · {{ numero }}</div>
+  <img class="logo" src="{{ logo }}" alt="MailSentry">
+  <h1>Protección del correo contra phishing y fraude</h1>
+  <div class="para">Preparada para <b>{{ empresa }}</b>{% if contacto %}<br>Atención: {{ contacto }}{% if cargo_contacto %}, {{ cargo_contacto }}{% endif %}{% endif %}</div>
+  <div class="datos">
+    <div><b>{{ fecha }}</b>Fecha</div>
+    <div><b>{{ vence }}</b>Válida hasta</div>
+    <div><b>{{ proveedor.nombre }}</b>{{ proveedor.cargo }}</div>
+  </div>
+</section>
+
+<!-- Contexto y solución -->
+<section class="hoja">
+  <div class="cabecera-hoja"><img src="{{ logo }}" alt="">Propuesta MailSentry para {{ empresa }}</div>
+
+  <div class="seccion">
+    <h2><span class="n">01</span>El riesgo</h2>
+    <p>La mayoría de ataques a empresas empiezan con un correo. No necesitan vulnerar sistemas: basta con que una
+      persona haga clic, entregue su contraseña o realice una transferencia. Para una empresa sin un área de
+      seguridad dedicada, un solo correo puede significar pérdidas económicas, sistemas bloqueados o datos expuestos.</p>
+    <div class="tarjetas">
+      <div><b>Fraude del CEO</b>Alguien usa el nombre de la gerencia para pedir una transferencia urgente y confidencial.</div>
+      <div><b>Facturas y cuentas falsas</b>Un "proveedor" con un dominio casi idéntico informa un cambio de cuenta bancaria.</div>
+      <div><b>Suplantación de entidades</b>Bancos, SUNAT, couriers o Microsoft falsos que roban contraseñas o instalan malware.</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h2><span class="n">02</span>La solución: MailSentry</h2>
+    <p>MailSentry analiza automáticamente cada correo que llega a la empresa y explica, en lenguaje simple, por qué es o no peligroso.</p>
+    <ul>
+      <li><b>Cinco capas de análisis:</b> autenticación del remitente (SPF, DKIM, DMARC), identidad y dominios imitados, enlaces, contenido y adjuntos.</li>
+      <li><b>Detección del fraude del CEO:</b> reconoce cuando alguien externo usa el nombre de sus directivos.</li>
+      <li><b>Inteligencia artificial</b> que aprende de los correos que su equipo confirma.</li>
+      <li><b>Origen de los ataques:</b> país del servidor de envío, en un globo interactivo.</li>
+      <li><b>Alertas inmediatas</b> (Teams, Slack u otros) y <b>reporte ejecutivo</b> con recomendaciones concretas.</li>
+      <li><b>Panel web</b> con usuarios, roles y bitácora de auditoría.</li>
+    </ul>
+  </div>
+
+  <div class="seccion">
+    <h2><span class="n">03</span>Alcance propuesto</h2>
+    <table>
+      <tr><td style="width:42%">Plan</td><td><b>{{ plan_nombre }}</b></td></tr>
+      {% if plan != 'diagnostico' %}<tr><td>Buzones protegidos</td><td>{{ buzones }}</td></tr>{% endif %}
+      {% if dominios %}<tr><td>Dominios de la empresa</td><td>{{ dominios | join(', ') }}</td></tr>{% endif %}
+      <tr><td>Correo compatible</td><td>Gmail / Google Workspace, Microsoft 365 y correo de hosting (IMAP)</td></tr>
+      {% if plan == 'diagnostico' %}
+      <tr><td>Entregables</td><td>Análisis de correos sospechosos de la empresa, reporte de amenazas encontradas y recomendaciones priorizadas.</td></tr>
+      {% elif plan == 'empresa' %}
+      <tr><td>Entregables</td><td>Instalación en la infraestructura del cliente, monitoreo de buzones, panel con roles, reporte mensual, integración vía API y soporte prioritario.</td></tr>
+      {% else %}
+      <tr><td>Entregables</td><td>Monitoreo continuo de buzones, alertas, panel web, reporte ejecutivo mensual, ajustes y soporte.</td></tr>
+      {% endif %}
+    </table>
+  </div>
+  <div class="pie-hoja"><span>MailSentry · {{ numero }}</span><span>2</span></div>
+</section>
+
+<!-- Implementación, inversión y condiciones -->
+<section class="hoja">
+  <div class="cabecera-hoja"><img src="{{ logo }}" alt="">Propuesta MailSentry para {{ empresa }}</div>
+
+  <div class="seccion">
+    <h2><span class="n">04</span>Implementación</h2>
+    <div class="cronograma">
+      {% if plan == 'diagnostico' %}
+      <b>Día 1</b><span>Reunión de inicio y recolección de los correos a revisar.</span>
+      <b>Días 2–4</b><span>Análisis con MailSentry y revisión manual de los casos dudosos.</span>
+      <b>Día 5</b><span>Entrega y presentación del reporte con recomendaciones.</span>
+      {% else %}
+      <b>Semana 1</b><span>Configuración: dominios, directivos y conexión segura de los buzones.</span>
+      <b>Semana 2</b><span>Periodo de ajuste: revisión de resultados y calibración con su equipo.</span>
+      <b>Semana 3</b><span>Capacitación breve al personal y entrega del primer reporte.</span>
+      <b>Mensual</b><span>Monitoreo continuo, reporte ejecutivo y reunión de seguimiento.</span>
+      {% endif %}
+    </div>
+    <h3>Lo que necesitamos de su empresa</h3>
+    <ul>
+      <li>Lista de dominios de correo y de directivos (nombre, cargo y correo).</li>
+      {% if plan != 'diagnostico' %}<li>Acceso autorizado a los buzones por el administrador del correo (sin compartir contraseñas por chat o correo).</li>{% endif %}
+      <li>Una persona de contacto para revisar alertas y resultados.</li>
+    </ul>
+  </div>
+
+  <div class="seccion">
+    <h2><span class="n">05</span>Inversión</h2>
+    {% if sin_precios %}<div class="aviso">Precios pendientes de completar en <b>ventas/propuesta.toml</b>.</div>{% endif %}
+    <table>
+      <thead><tr><th>Concepto</th><th>Modalidad</th><th class="num">Monto</th></tr></thead>
+      <tbody>
+        {% for concepto, modalidad, monto in calculo.filas %}
+        <tr><td>{{ concepto }}</td><td>{{ modalidad }}</td><td class="num">{{ monto | dinero }}</td></tr>
+        {% endfor %}
+        {% if calculo.mensual %}
+        <tr class="total"><td colspan="2">Primer mes (implementación + mensualidad)</td><td class="num">{{ (calculo.unico + calculo.mensual) | dinero }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+    <p class="nota">Montos en {{ moneda }}{{ ', IGV incluido' if precios.igv_incluido else ', más IGV' }}.
+      {% if plan != 'diagnostico' and precios.permanencia_meses %}Permanencia mínima de {{ precios.permanencia_meses }} meses.{% endif %}
+      Propuesta válida hasta el {{ vence }}.</p>
+  </div>
+
+  <div class="seccion">
+    <h2><span class="n">06</span>Condiciones</h2>
+    <ul>
+      <li><b>Confidencialidad y datos personales:</b> la información de los correos se trata como confidencial y solo para prestar el
+        servicio, conforme a la Ley N.° 29733 de Protección de Datos Personales. Se firmará el acuerdo de encargo de tratamiento correspondiente.</li>
+      <li><b>Sin modificaciones por defecto:</b> MailSentry analiza y alerta; solo mueve correos a cuarentena si su empresa lo autoriza, y nunca los borra.</li>
+      <li><b>Alcance realista:</b> ninguna herramienta detecta el 100% del phishing. MailSentry reduce el riesgo de forma importante y
+        se complementa con buenas prácticas, como verificar por teléfono todo pago o cambio de cuenta bancaria.</li>
+    </ul>
+  </div>
+
+  <div class="firmas">
+    <div><b>{{ proveedor.nombre }}</b><br>{{ proveedor.cargo }}{% if proveedor.empresa %} · {{ proveedor.empresa }}{% endif %}{% if proveedor.ruc %} · RUC {{ proveedor.ruc }}{% endif %}<br>{{ proveedor.correo }} · {{ proveedor.telefono }}</div>
+    <div><b>Aceptación — {{ empresa }}</b><br>Nombre, firma y fecha</div>
+  </div>
+  <div class="pie-hoja"><span>MailSentry · {{ numero }}</span><span>3</span></div>
+</section>
+</body>
+</html>

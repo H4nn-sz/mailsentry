@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}Configuración inicial{% endblock %}
+{% block contenido %}
+<div class="acceso">
+  <form class="tarjeta" method="post" style="max-width:420px">
+    <input type="hidden" name="_csrf" value="{{ csrf() }}">
+    <div class="marca">
+      <img class="logo" src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="46" height="28">
+      <span>Bienvenido a MailSentry</span>
+    </div>
+    <p class="sec">Cree la cuenta del administrador. Después podrá agregar analistas y lectores.</p>
+    <div class="campo"><label for="nombre">Nombre</label><input id="nombre" type="text" name="nombre" autocomplete="name"></div>
+    <div class="campo"><label for="usuario">Usuario</label><input id="usuario" type="text" name="usuario" required autocomplete="username"></div>
+    <div class="campo"><label for="password">Contraseña (mínimo 10 caracteres)</label><input id="password" type="password" name="password" required minlength="10" autocomplete="new-password"></div>
+    <div class="campo"><label for="confirmacion">Repetir contraseña</label><input id="confirmacion" type="password" name="confirmacion" required minlength="10" autocomplete="new-password"></div>
+    <button class="btn btn-primario" type="submit" style="width:100%;justify-content:center">Crear administrador</button>
+  </form>
+</div>
+{% endblock %}

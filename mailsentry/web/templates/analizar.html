@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import veredicto, csrf_input with context %}
+{% block titulo %}Analizar correo{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Analizar un correo sospechoso</h1>
+    <p>Suba archivos .eml o pegue el código fuente. El correo se analiza y queda registrado en el panel.</p>
+  </div>
+</div>
+
+<div class="grid g-2">
+  <form class="tarjeta" method="post" enctype="multipart/form-data">
+    {{ csrf_input() }}
+    <div class="campo">
+      <label for="archivos">Archivos .eml (puede elegir varios)</label>
+      <input type="file" id="archivos" name="archivos" accept=".eml,message/rfc822" multiple>
+    </div>
+    <div class="campo">
+      <label for="fuente">… o pegue el código fuente completo del correo</label>
+      <textarea id="fuente" name="fuente" placeholder="Return-Path: ...&#10;Received: ...&#10;From: ...&#10;Subject: ..."></textarea>
+    </div>
+    <button class="btn btn-primario" type="submit">Analizar</button>
+  </form>
+  <section class="tarjeta">
+    <h3>¿Cómo obtengo el archivo o el código fuente?</h3>
+    <dl class="datos">
+      <dt>Gmail</dt><dd>Abra el correo → menú ⋮ → <b>Descargar mensaje</b> (.eml) o <b>Mostrar original</b>.</dd>
+      <dt>Outlook web</dt><dd>Menú ⋯ → <b>Ver</b> → <b>Ver detalles del mensaje</b> y copie todo.</dd>
+      <dt>Outlook escritorio</dt><dd>Arrastre el correo a una carpeta (se guarda como .msg) o use <b>Archivo → Guardar como</b>.</dd>
+      <dt>Thunderbird</dt><dd>Clic derecho → <b>Guardar como…</b> (.eml).</dd>
+    </dl>
+    <p class="muted" style="margin-top:12px">Consejo: cree un buzón tipo <i>reportes@</i> donde el personal reenvíe los correos dudosos <b>como adjunto</b>; MailSentry los analizará solo (ver Buzones).</p>
+  </section>
+</div>
+
+{% if resultados %}
+<section class="tarjeta mt">
+  <h3>Resultados</h3>
+  <div class="tabla-env"><table>
+    <thead><tr><th>Archivo</th><th>Asunto</th><th>Veredicto</th><th class="num">Puntaje</th><th></th></tr></thead>
+    <tbody>
+    {% for r in resultados %}
+      <tr>
+        <td class="sec">{{ r.archivo }}</td>
+        <td class="celda-asunto"><a href="{{ url_for('panel.correo', correo_id=r.correo.id) }}">{{ r.correo.asunto or '(sin asunto)' }}</a></td>
+        <td>{{ veredicto(r.correo.veredicto_efectivo) }}</td>
+        <td class="num">{{ r.correo.puntaje }}</td>
+        <td class="muted">{{ '' if r.nuevo else 'ya estaba registrado' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endif %}
+{% endblock %}

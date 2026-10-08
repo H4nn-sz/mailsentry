@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Listas{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Listas de la empresa</h1>
+    <p>Acepta dominios (<code>proveedor.com.pe</code>) o direcciones (<code>persona@proveedor.com.pe</code>).</p>
+  </div>
+</div>
+
+{% if tiene_rol('analista') %}
+<form class="tarjeta plana filtros" method="post" style="margin-bottom:16px">
+  {{ csrf_input() }}
+  <select name="tipo" aria-label="Lista">
+    <option value="bloqueado">Bloquear</option>
+    <option value="permitido">De confianza</option>
+    <option value="propio">Dominio propio</option>
+  </select>
+  <input type="text" name="valor" placeholder="dominio.com o correo@dominio.com" required aria-label="Valor" style="flex:1 1 240px">
+  <input type="text" name="nota" placeholder="Nota (opcional)" aria-label="Nota" style="flex:1 1 200px">
+  <button class="btn btn-primario" type="submit">Agregar</button>
+</form>
+{% endif %}
+
+<div class="grid g-3">
+  {% for tipo, titulo, ayuda in [
+    ('propio', 'Dominios propios', 'Se protegen contra suplantación e imitación (typosquatting).'),
+    ('bloqueado', 'Bloqueados', 'Todo correo de aquí se marca como phishing.'),
+    ('permitido', 'De confianza', 'Restan puntaje si el remitente pasa la autenticación. Úselo con cuidado.')] %}
+  <section class="tarjeta">
+    <header><div><h2>{{ titulo }}</h2><p>{{ ayuda }}</p></div></header>
+    {% set items = reglas | selectattr('tipo', 'equalto', tipo) | list %}
+    {% if tipo == 'propio' %}{% for d in dominios_config %}<p><span class="mono">{{ d }}</span> <span class="muted">(config.toml)</span></p>{% endfor %}{% endif %}
+    {% for r in items %}
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--borde)">
+        <div style="min-width:0"><span class="mono" style="overflow-wrap:anywhere">{{ r.valor }}</span>{% if r.nota %}<br><small class="muted">{{ r.nota }}</small>{% endif %}</div>
+        {% if tiene_rol('analista') %}
+        <form method="post" action="{{ url_for('panel.eliminar_regla', regla_id=r.id) }}" data-confirmar="¿Quitar {{ r.valor }} de la lista?">{{ csrf_input() }}<button class="btn btn-chico" type="submit" aria-label="Quitar {{ r.valor }}">Quitar</button></form>
+        {% endif %}
+      </div>
+    {% else %}
+      {% if not (tipo == 'propio' and dominios_config) %}<div class="vacio">Vacía</div>{% endif %}
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Buzones{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Buzones vigilados</h1>
+    <p>Se revisan automáticamente cada {{ intervalo }} segundos mientras MailSentry está en marcha.</p>
+  </div>
+  {% if tiene_rol('admin') and buzones %}
+  <form method="post" action="{{ url_for('panel.revisar_buzones') }}">{{ csrf_input() }}<button class="btn btn-primario" type="submit">Revisar ahora</button></form>
+  {% endif %}
+</div>
+
+<section class="tarjeta">
+  {% if buzones %}
+  <div class="tabla-env"><table>
+    <thead><tr><th>Buzón</th><th>Cuenta</th><th>Conexión</th><th>Tipo</th><th>Última revisión</th><th class="num">Procesados</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for b in buzones %}
+      {% set e = estados.get(b.nombre) %}
+      <tr>
+        <td><b>{{ b.nombre }}</b></td>
+        <td>{{ b.usuario }}</td>
+        <td>{{ 'Microsoft 365' if b.conexion == 'graph' else 'IMAP · ' ~ b.servidor }}</td>
+        <td>{{ 'Reportes del personal' if b.tipo == 'reportes' else 'Bandeja de entrada' }}{% if b.cuarentena %}<br><small class="muted">mueve phishing a «{{ b.cuarentena }}»</small>{% endif %}</td>
+        <td class="muted">{{ e.ultima_revision | fecha if e and e.ultima_revision else 'nunca' }}</td>
+        <td class="num">{{ e.total_procesados if e else 0 }}</td>
+        <td>
+          {% if not b.credencial_configurada %}<span class="badge b-sospechoso"><span class="ico">!</span>Falta credencial</span>
+          {% elif e and e.ultimo_error %}<span class="badge b-phishing"><span class="ico">✕</span>Error</span><br><small class="muted">{{ e.ultimo_error }}</small>
+          {% elif e %}<span class="badge b-legitimo"><span class="ico">✓</span>Conectado</span>
+          {% else %}<span class="muted">Pendiente</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="vacio">No hay buzones configurados todavía.</div>
+  {% endif %}
+</section>
+
+<div class="grid g-2 mt">
+  <section class="tarjeta">
+    <h3>Gmail, Google Workspace y hosting (IMAP)</h3>
+    <p class="sec">Agregue en <code>config.toml</code>:</p>
+<pre class="cuerpo mono">[[buzones]]
+nombre = "Gerencia"
+conexion = "imap"
+servidor = "imap.gmail.com"
+usuario = "gerencia@suempresa.com.pe"
+password_env = "MAILSENTRY_PASS_GERENCIA"</pre>
+    <p class="sec" style="margin-top:10px">Y en el archivo <code>.env</code> la contraseña de aplicación:
+      <code>MAILSENTRY_PASS_GERENCIA=xxxx xxxx xxxx xxxx</code>. En Gmail se crea en
+      <i>Cuenta de Google → Seguridad → Contraseñas de aplicaciones</i> (requiere verificación en 2 pasos).
+      Hostings con cPanel usan <code>mail.sudominio.com</code> y la contraseña normal del buzón.</p>
+  </section>
+  <section class="tarjeta">
+    <h3>Microsoft 365 / Outlook empresarial (Graph)</h3>
+    <p class="sec">Microsoft ya no permite IMAP con contraseña. Registre una aplicación en
+      <i>Entra ID → Registros de aplicaciones</i>, otorgue el permiso de aplicación <b>Mail.Read</b>
+      (o <b>Mail.ReadWrite</b> para cuarentena) con consentimiento de administrador, cree un secreto y configure:</p>
+<pre class="cuerpo mono">[[buzones]]
+nombre = "Finanzas"
+conexion = "graph"
+usuario = "finanzas@suempresa.com"
+tenant_id = "..."
+client_id = "..."
+secret_env = "MAILSENTRY_GRAPH_SECRET"</pre>
+  </section>
+</div>
+{% endblock %}

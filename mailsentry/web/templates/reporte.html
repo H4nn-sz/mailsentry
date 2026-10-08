@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titulo %}Reporte ejecutivo{% endblock %}
+{% block contenido %}
+{% set t = datos.totales %}
+<div class="cabecera">
+  <div>
+    <h1>Reporte de seguridad del correo</h1>
+    <p>{{ empresa }} · {{ datos.periodo_txt }} ({{ datos.desde }} – {{ datos.hasta }}) · generado el {{ generado.strftime('%d/%m/%Y %H:%M') }}</p>
+  </div>
+  <div class="filtros no-imprimir">
+    <div class="chips" role="group" aria-label="Periodo">
+      {% for clave in ['7d', '30d', '90d', '12m'] %}
+        <a class="chip {{ 'activo' if clave == datos.periodo }}" href="{{ url_for('panel.reporte', periodo=clave) }}">{{ periodos[clave][0].replace('Últimos ', '') }}</a>
+      {% endfor %}
+    </div>
+    <button class="btn btn-primario" type="button" data-imprimir>Imprimir / PDF</button>
+  </div>
+</div>
+
+<section class="tarjeta">
+  <h2>Resumen</h2>
+  <p style="margin-top:8px;font-size:15px">
+    En este periodo MailSentry analizó <b>{{ t.analizados | miles }}</b> correos. <b>{{ t.phishing }}</b> fueron phishing
+    ({{ t.tasa_phishing }}% del total) y <b>{{ t.sospechosos }}</b> se marcaron como sospechosos para revisión.
+    {% if datos.categorias %}El tipo de ataque más frecuente fue <b>{{ datos.categorias[0].etiqueta | lower }}</b>
+    ({{ datos.categorias[0].valor }} correos){% endif %}{% if datos.departamentos %}, y el área más atacada fue
+    <b>{{ datos.departamentos[0].etiqueta }}</b>{% endif %}.
+    {% if datos.previo %}Frente al periodo anterior, el phishing {{ 'aumentó' if t.phishing > datos.previo.phishing else 'disminuyó' if t.phishing < datos.previo.phishing else 'se mantuvo' }}
+    ({{ datos.previo.phishing }} → {{ t.phishing }}).{% endif %}
+  </p>
+</section>
+
+<div class="grid g-2 mt">
+  <section class="tarjeta">
+    <h3>Tipos de ataque</h3>
+    <table><thead><tr><th>Tipo</th><th class="num">Correos</th></tr></thead><tbody>
+      {% for c in datos.categorias %}<tr><td>{{ c.etiqueta }}</td><td class="num">{{ c.valor }}</td></tr>{% else %}<tr><td colspan="2" class="muted">Sin amenazas</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  <section class="tarjeta">
+    <h3>Personas más atacadas</h3>
+    <table><thead><tr><th>Persona</th><th>Área</th><th class="num">Correos</th></tr></thead><tbody>
+      {% for o in datos.objetivos %}<tr><td>{{ o.nombre }}</td><td class="sec">{{ o.departamento }}</td><td class="num">{{ o.valor }}</td></tr>{% else %}<tr><td colspan="3" class="muted">Sin datos</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  <section class="tarjeta">
+    <h3>Marcas suplantadas</h3>
+    <table><thead><tr><th>Marca</th><th class="num">Correos</th></tr></thead><tbody>
+      {% for m in datos.marcas %}<tr><td>{{ m.etiqueta }}</td><td class="num">{{ m.valor }}</td></tr>{% else %}<tr><td colspan="2" class="muted">Ninguna</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  <section class="tarjeta">
+    <h3>Dominios atacantes</h3>
+    <table><thead><tr><th>Dominio</th><th class="num">Correos</th></tr></thead><tbody>
+      {% for d in datos.dominios %}<tr><td class="mono">{{ d.dominio | desarmar }}</td><td class="num">{{ d.valor }}</td></tr>{% else %}<tr><td colspan="2" class="muted">Ninguno</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+</div>
+
+<section class="tarjeta mt">
+  <h2>Recomendaciones</h2>
+  {% for r in recomendaciones %}
+    <div class="recomendacion">
+      <span class="badge b-{{ {'alta': 'critico', 'media': 'medio', 'baja': 'bajo'}[r.prioridad] }}"><span class="ico" aria-hidden="true">{{ {'alta': '✕', 'media': '!', 'baja': '✓'}[r.prioridad] }}</span>Prioridad {{ r.prioridad }}</span>
+      <div><b>{{ r.titulo }}</b><p class="sec" style="margin:2px 0 0">{{ r.texto }}</p></div>
+    </div>
+  {% endfor %}
+</section>
+{% endblock %}

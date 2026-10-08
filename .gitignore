@@ -1,0 +1,21 @@
+# Entorno de Python
+.venv/
+__pycache__/
+*.pyc
+
+# Datos locales: bases de datos, modelo de IA, base GeoIP, credenciales de demo, registros
+data/
+*.log
+
+# Configuración con secretos o datos de cada instalación
+config.toml
+.env
+
+# Ventas: datos fiscales y propuestas generadas para clientes
+ventas/propuesta.toml
+ventas/propuestas/
+
+# Herramientas del editor
+.claude/
+.vscode/
+.idea/

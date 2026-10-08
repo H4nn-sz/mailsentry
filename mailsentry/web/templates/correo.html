@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% from "_macros.html" import nivel, veredicto, csrf_input with context %}
+{% block titulo %}Correo #{{ c.id }}{% endblock %}
+{% block contenido %}
+{% set color = {'bajo': '--bien', 'medio': '--aviso', 'alto': '--serio', 'critico': '--critico'}[c.nivel_riesgo] %}
+<div class="cabecera">
+  <div style="min-width:0">
+    <p style="margin:0 0 4px"><a href="{{ url_for('panel.correos') }}">← Correos</a></p>
+    <h1 style="overflow-wrap:anywhere">{{ c.asunto or '(sin asunto)' }}</h1>
+    <p>{{ c.remitente_nombre }} &lt;{{ c.remitente_email }}&gt; · {{ c.recibido_en | fecha }}</p>
+  </div>
+  <div class="acciones">{{ veredicto(c.veredicto_efectivo) }} {{ nivel(c.nivel_riesgo) }}</div>
+</div>
+
+<div class="grid g-12">
+  <div class="grid" style="align-content:start">
+    <section class="tarjeta">
+      <h3>Puntaje de riesgo</h3>
+      <div class="puntaje">{{ c.puntaje }}<small> / 100</small></div>
+      <div class="medidor" style="--m-color: var({{ color }})">
+        <div class="medidor-pista" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ c.puntaje }}" aria-label="Puntaje de riesgo">
+          <div class="medidor-fill" style="width: {{ c.puntaje }}%"></div>
+          {% for u in umbrales %}<span class="medidor-marca" style="left: {{ u }}%"></span>{% endfor %}
+        </div>
+        <div class="medidor-escala"><span>Legítimo</span><span>Sospechoso ≥{{ umbrales[0] }}</span><span>Phishing ≥{{ umbrales[1] }}</span></div>
+      </div>
+      <dl class="datos" style="margin-top:14px">
+        <dt>Tipo</dt><dd>{{ CATEGORIAS[c.categoria] }}</dd>
+        {% if c.marca_suplantada %}<dt>Marca imitada</dt><dd>{{ c.marca_suplantada }}</dd>{% endif %}
+        <dt>Reglas</dt><dd>{{ c.puntaje_heuristico }} pts</dd>
+        <dt>IA</dt><dd>{% if c.prob_ml is not none %}{{ '%.0f' % (c.prob_ml * 100) }}% probabilidad de phishing{% else %}<span class="muted">sin modelo entrenado</span>{% endif %}</dd>
+        <dt>Estado</dt><dd>{{ ESTADOS[c.estado] }}{% if c.revisado_por %} <span class="muted">· {{ c.revisado_por }}, {{ c.revisado_en | fecha }}</span>{% endif %}</dd>
+      </dl>
+    </section>
+
+    {% if tiene_rol('analista') %}
+    <section class="tarjeta">
+      <h3>Revisión del analista</h3>
+      <form method="post" action="{{ url_for('panel.revisar', correo_id=c.id) }}">
+        {{ csrf_input() }}
+        <div class="acciones" style="margin-bottom:10px">
+          <button class="btn" name="accion" value="confirmar" type="submit">✕ Confirmar phishing</button>
+          <button class="btn" name="accion" value="falso_positivo" type="submit">✓ Es legítimo</button>
+          <button class="btn" name="accion" value="en_revision" type="submit">En revisión</button>
+          <button class="btn" name="accion" value="resuelto" type="submit">Resuelto</button>
+          {% if c.etiqueta or c.estado != 'nuevo' %}<button class="btn" name="accion" value="reabrir" type="submit">Reabrir</button>{% endif %}
+        </div>
+        <label for="notas">Notas internas</label>
+        <textarea id="notas" name="notas" style="min-height:70px;font-family:inherit" placeholder="Acciones tomadas, a quién se avisó...">{{ c.notas }}</textarea>
+        <button class="btn btn-chico" name="accion" value="notas" type="submit" style="margin-top:6px">Guardar notas</button>
+      </form>
+      <p class="muted" style="margin:10px 0 0;font-size:12.5px">Confirmar o descartar entrena al modelo de IA de MailSentry.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h3>Remitente</h3>
+      {% for r in reglas %}<p><span class="etq">En lista: {{ r.tipo }} · {{ r.valor }}</span></p>{% endfor %}
+      <div class="acciones">
+        {% for tipo, texto in [('bloqueado', 'Bloquear'), ('permitido', 'Marcar de confianza')] %}
+          {% for alcance in (['email'] if dominio_compartido else ['email', 'dominio']) %}
+          <form method="post" action="{{ url_for('panel.agregar_a_lista', correo_id=c.id) }}"
+                data-confirmar="¿{{ texto }} {{ c.remitente_email if alcance == 'email' else 'todo el dominio ' ~ c.remitente_dominio }}?">
+            {{ csrf_input() }}<input type="hidden" name="tipo" value="{{ tipo }}"><input type="hidden" name="alcance" value="{{ alcance }}">
+            <button class="btn btn-chico {{ 'btn-peligro' if tipo == 'bloqueado' }}" type="submit">{{ texto }} {{ 'dirección' if alcance == 'email' else 'dominio' }}</button>
+          </form>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="acciones" style="margin-top:10px">
+        {% if tiene_original %}
+        <form method="post" action="{{ url_for('panel.reanalizar', correo_id=c.id) }}">{{ csrf_input() }}<button class="btn btn-chico" type="submit">Reanalizar</button></form>
+        {% if tiene_rol('admin') %}<a class="btn btn-chico" href="{{ url_for('panel.original', correo_id=c.id) }}" title="Descarga el .eml como evidencia. No lo abra en su programa de correo.">Descargar evidencia (.eml)</a>{% endif %}
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="grid" style="align-content:start">
+    <section class="tarjeta">
+      <header><div><h2>¿Por qué este resultado?</h2><p>Señales encontradas, ordenadas por peso</p></div></header>
+      {% for i in c.indicadores %}
+        <div class="indicador">
+          <div class="pts {{ 'muted' if i.puntos <= 0 }}">{{ '%+d' % i.puntos if i.puntos else '·' }}</div>
+          <div>
+            <div class="tit">{{ i.titulo }} {% if i.severidad != 'info' %}<span class="sev sev-{{ i.severidad }}">{{ i.severidad }}</span>{% endif %}</div>
+            <div class="det">{{ i.detalle | desarmar_texto }}</div>
+          </div>
+        </div>
+      {% else %}
+        <div class="vacio">Sin señales de riesgo.</div>
+      {% endfor %}
+    </section>
+
+    <section class="tarjeta">
+      <h3>Datos del envío</h3>
+      <dl class="datos">
+        <dt>De</dt><dd>{{ c.remitente_nombre }} &lt;{{ c.remitente_email }}&gt;</dd>
+        {% if c.responder_a %}<dt>Responder a</dt><dd>{{ c.responder_a }}</dd>{% endif %}
+        <dt>Para</dt><dd>{{ c.destinatarios or '—' }}{% if empleado %} <span class="etq">{{ empleado.departamento }}</span>{% if empleado.es_vip %} <span class="etq etq-vip">Directivo</span>{% endif %}{% endif %}</dd>
+        <dt>Autenticación</dt>
+        <dd class="auth">
+          {% for m in ['spf', 'dkim', 'dmarc'] %}
+            {% set v = c.autenticacion.get(m) %}
+            <span class="badge {{ 'b-legitimo' if v == 'pass' else 'b-phishing' if v in ('fail', 'softfail') else '' }}">
+              <span class="ico" aria-hidden="true" style="{{ '' if v in ('pass', 'fail', 'softfail') else 'background:var(--eje)' }}">{{ '✓' if v == 'pass' else '✕' if v in ('fail', 'softfail') else '?' }}</span>{{ m | upper }}: {{ v or 'sin dato' }}
+            </span>
+          {% endfor %}
+        </dd>
+        <dt>Enviado desde</dt>
+        <dd>
+          {% if c.ip_origen %}
+            {% if c.proveedor_origen %}<b>vía {{ c.proveedor_origen }}</b> <span class="muted">— el proveedor oculta el origen real del remitente</span><br>{% endif %}
+            {% if c.pais_origen %}<b>{{ c.pais_origen | pais }}</b> <span class="muted">({{ c.pais_origen | region }})</span> · {% endif %}
+            <span class="mono">{{ c.ip_origen }}</span>{% if c.servidor_origen %} · <span class="mono muted">{{ c.servidor_origen | desarmar }}</span>{% endif %}
+            <br><small class="muted">País del servidor que entregó el correo (dato registrado por su servidor, no falsificable). No es necesariamente la ubicación del atacante.</small>
+          {% else %}<span class="muted">Sin datos de origen (el correo no trae cabeceras de entrega)</span>{% endif %}
+        </dd>
+        <dt>Buzón</dt><dd>{{ c.buzon or '—' }} <span class="muted">({{ c.fuente }}{% if c.reportado_por %}, reportado por {{ c.reportado_por }}{% endif %})</span></dd>
+        <dt>Historial</dt><dd>{{ mismo_dominio }} correo(s) más de <a href="{{ url_for('panel.correos', dominio=c.remitente_dominio) }}">{{ c.remitente_dominio | desarmar }}</a></dd>
+        {% if c.message_id %}<dt>Message-ID</dt><dd class="mono muted">{{ c.message_id }}</dd>{% endif %}
+      </dl>
+    </section>
+
+    {% if c.urls %}
+    <section class="tarjeta">
+      <h3>Enlaces ({{ c.urls | length }}) — desactivados por seguridad</h3>
+      <div class="tabla-env"><table>
+        <thead><tr><th>Destino real</th><th>Texto visible</th></tr></thead>
+        <tbody>
+        {% for u in c.urls[:40] %}
+          <tr><td class="mono" style="overflow-wrap:anywhere">{{ u.url | desarmar }}</td><td class="sec">{{ u.texto or ('formulario' if u.origen == 'formulario' else '—') }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
+    {% endif %}
+
+    {% if c.adjuntos %}
+    <section class="tarjeta">
+      <h3>Adjuntos ({{ c.adjuntos | length }})</h3>
+      <div class="tabla-env"><table>
+        <thead><tr><th>Archivo</th><th>Tipo</th><th class="num">Tamaño</th><th>SHA-256</th></tr></thead>
+        <tbody>
+        {% for a in c.adjuntos %}
+          <tr><td style="overflow-wrap:anywhere">{{ a.nombre }}</td><td class="muted">{{ a.tipo }}</td><td class="num">{{ a.tamano | tamano }}</td><td class="mono muted" title="{{ a.sha256 }}">{{ a.sha256[:16] }}…</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
+    {% endif %}
+
+    <section class="tarjeta">
+      <h3>Contenido (texto plano, enlaces desactivados)</h3>
+      <pre class="cuerpo">{{ cuerpo or '(sin contenido de texto)' }}</pre>
+    </section>
+  </div>
+</div>
+{% endblock %}

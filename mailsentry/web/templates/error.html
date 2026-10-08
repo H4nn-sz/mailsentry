@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titulo %}Error {{ codigo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta" style="max-width:520px;margin:40px auto;text-align:center">
+  <h1>{{ codigo }}</h1>
+  <p class="sec" style="margin-top:8px">{{ mensaje }}</p>
+  <a class="btn" href="{{ url_for('panel.inicio') }}">Volver al panel</a>
+</div>
+{% endblock %}

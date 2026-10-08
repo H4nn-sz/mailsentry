@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>MailSentry · Protección contra phishing para empresas</title>
+  <meta name="description" content="MailSentry vigila el correo de tu empresa y detecta phishing, fraude del CEO, facturas falsas y suplantación de bancos y SUNAT. Hecho para MYPEs peruanas.">
+  <link rel="icon" href="recursos/icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<!--
+  PERSONALIZAR ANTES DE PUBLICAR (busca "PERSONALIZAR" en este archivo):
+  - Tu nombre y enlace a tu CV/portafolio.
+  - Tu correo y WhatsApp de contacto.
+-->
+<header class="nav">
+  <a class="nav-marca" href="#inicio"><img src="recursos/logo.svg" alt="" width="46" height="28">MailSentry</a>
+  <nav aria-label="Secciones">
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#que-detecta">Qué detecta</a>
+    <a href="#planes">Planes</a>
+    <a href="#preguntas">Preguntas</a>
+  </nav>
+  <a class="boton boton-claro" href="#contacto">Solicitar demo</a>
+</header>
+
+<main id="inicio">
+  <section class="hero">
+    <div class="hero-texto">
+      <div class="etiqueta">Ciberseguridad para MYPEs</div>
+      <h1>Vigilamos el correo de tu empresa para que <span class="resalte">nadie caiga</span> en phishing.</h1>
+      <p class="hero-sub">MailSentry revisa cada correo que llega y detecta fraudes del CEO, facturas falsas, robos de
+        contraseñas y suplantaciones de bancos, SUNAT o couriers, antes de que alguien haga clic o transfiera dinero.</p>
+      <div class="hero-acciones">
+        <a class="boton boton-claro" href="#contacto">Solicitar demo gratuita</a>
+        <a class="boton" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+      <ul class="hero-puntos">
+        <li>Explica en español por qué un correo es peligroso</li>
+        <li>Muestra desde qué país atacan a tu empresa</li>
+        <li>Reporte mensual listo para gerencia</li>
+      </ul>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <canvas id="globo" class="globo"></canvas>
+      <div class="hero-aviso">Vista ilustrativa del panel</div>
+    </div>
+  </section>
+
+  <section class="franja" aria-label="Amenazas que reconoce">
+    <span>Detecta suplantaciones de</span>
+    <b>BCP</b><b>Interbank</b><b>BBVA</b><b>Yape</b><b>SUNAT</b><b>Microsoft 365</b><b>Olva · DHL · Serpost</b><b>y tu propia gerencia</b>
+  </section>
+
+  <section class="seccion" id="riesgos">
+    <div class="seccion-cabeza">
+      <div class="etiqueta">El problema</div>
+      <h2>Un solo correo puede costarle caro a una MYPE</h2>
+      <p>Los atacantes no rompen sistemas: engañan a personas. Y las empresas pequeñas casi nunca tienen un área de seguridad que revise.</p>
+    </div>
+    <div class="rejilla tres">
+      <article class="tarjeta">
+        <div class="icono">₪</div>
+        <h3>Fraude del CEO</h3>
+        <p>"Estoy en reunión, haz esta transferencia hoy, es confidencial". Alguien usa el nombre de tu gerente desde un Gmail o un dominio parecido al tuyo.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono">⌁</div>
+        <h3>Facturas y cuentas falsas</h3>
+        <p>Un "proveedor" avisa que cambió de cuenta bancaria. El correo viene de un dominio casi idéntico al real y el pago termina en manos del estafador.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono">◎</div>
+        <h3>Bancos, SUNAT y couriers falsos</h3>
+        <p>"Su clave fue bloqueada", "cobranza coactiva", "su paquete está retenido". Enlaces a páginas que roban contraseñas o adjuntos que instalan malware.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="seccion" id="como-funciona">
+    <div class="seccion-cabeza">
+      <div class="etiqueta">Cómo funciona</div>
+      <h2>Tres pasos y tu empresa queda vigilada</h2>
+    </div>
+    <ol class="rejilla tres pasos">
+      <li class="tarjeta"><span class="num">01</span><h3>Conectamos tu correo</h3><p>Funciona con Gmail / Google Workspace, Microsoft 365 y correo de hosting (cPanel). Lee sin modificar nada.</p></li>
+      <li class="tarjeta"><span class="num">02</span><h3>Analiza cada correo</h3><p>Cinco capas de revisión: remitente, autenticación, enlaces, contenido y adjuntos, más una IA que aprende de tu empresa.</p></li>
+      <li class="tarjeta"><span class="num">03</span><h3>Te alerta y te explica</h3><p>Alertas inmediatas en Teams o Slack, un panel con todas las amenazas y un reporte ejecutivo con recomendaciones concretas.</p></li>
+    </ol>
+  </section>
+
+  <section class="seccion" id="que-detecta">
+    <div class="seccion-cabeza">
+      <div class="etiqueta">Qué detecta</div>
+      <h2>No solo dice "peligroso": dice por qué</h2>
+      <p>Cada correo recibe un puntaje de riesgo y una explicación que cualquier persona entiende.</p>
+    </div>
+    <div class="demo-deteccion">
+      <div class="correo-ejemplo">
+        <div class="correo-cab"><span class="punto"></span><b>Carlos Mendoza</b> &lt;carlos.mendoza.gerencia@gmail.com&gt;</div>
+        <div class="correo-asunto">Pago urgente</div>
+        <p>"Lucía, estoy en una reunión con el directorio y no puedo atender llamadas. Necesito que realices hoy mismo una
+          transferencia a un proveedor nuevo. Es un tema confidencial, no lo comentes por ahora…"</p>
+      </div>
+      <div class="resultado">
+        <div class="resultado-cab"><div><div class="etiqueta">Resultado de MailSentry</div><div class="puntaje">98<small>/100</small></div></div><span class="sello">✕ Phishing · Fraude del CEO</span></div>
+        <ul class="senales">
+          <li><b>+45</b> Usa el nombre de un directivo desde un correo gratuito, no desde el de la empresa</li>
+          <li><b>+28</b> Patrón de fraude del CEO: "estoy en reunión", "no lo comentes"</li>
+          <li><b>+20</b> Suplantación más pedido de dinero</li>
+          <li><b>+16</b> Solicitud de transferencia</li>
+        </ul>
+        <p class="nota-pie">Ejemplo real del motor de MailSentry en un entorno de demostración.</p>
+      </div>
+    </div>
+    <div class="rejilla tres caracteristicas">
+      <div><h3>Dominios imitados</h3><p>Reconoce dominios como <code>tuempresa-pe.com</code>, <code>micros0ft</code> o letras de otros alfabetos que parecen iguales.</p></div>
+      <div><h3>Enlaces engañosos</h3><p>Texto que muestra un banco pero lleva a otro sitio, acortadores, páginas en hosting gratuito y listas públicas de phishing.</p></div>
+      <div><h3>Adjuntos peligrosos</h3><p>Programas disfrazados de factura, macros, ZIP con contraseña y páginas falsas de inicio de sesión.</p></div>
+      <div><h3>Origen de los ataques</h3><p>El país del servidor que envió cada amenaza, en un globo interactivo.</p></div>
+      <div><h3>Inteligencia artificial</h3><p>Aprende de los correos que tu equipo confirma, para adaptarse a los ataques que recibe tu empresa.</p></div>
+      <div><h3>Reporte para gerencia</h3><p>Cuántos ataques llegaron, a quién y qué hacer: verificación de pagos, MFA, capacitación.</p></div>
+    </div>
+  </section>
+
+  <section class="seccion" id="planes">
+    <div class="seccion-cabeza">
+      <div class="etiqueta">Planes</div>
+      <h2>Elige cómo empezar</h2>
+      <p>El precio depende del número de buzones. Escríbenos y te enviamos una propuesta sin compromiso.</p>
+    </div>
+    <div class="rejilla tres planes">
+      <article class="tarjeta plan">
+        <h3>Diagnóstico</h3>
+        <p class="plan-desc">Para saber cuánto riesgo tienes hoy.</p>
+        <ul><li>Revisión de los correos sospechosos de tu empresa</li><li>Reporte de amenazas encontradas</li><li>Recomendaciones priorizadas</li><li>Pago único</li></ul>
+        <a class="boton" href="#contacto">Cotizar</a>
+      </article>
+      <article class="tarjeta plan destacado">
+        <div class="cinta">Recomendado</div>
+        <h3>Protección continua</h3>
+        <p class="plan-desc">Vigilancia permanente del correo.</p>
+        <ul><li>Monitoreo automático de tus buzones</li><li>Alertas inmediatas de amenazas críticas</li><li>Panel con globo de ataques e historial</li><li>Reporte ejecutivo mensual</li><li>Soporte y ajustes incluidos</li></ul>
+        <a class="boton boton-claro" href="#contacto">Solicitar demo</a>
+      </article>
+      <article class="tarjeta plan">
+        <h3>Empresa</h3>
+        <p class="plan-desc">Para equipos grandes o datos sensibles.</p>
+        <ul><li>Instalación en tus propios servidores</li><li>Microsoft 365 y varios dominios</li><li>Usuarios con roles y auditoría</li><li>Integración vía API</li></ul>
+        <a class="boton" href="#contacto">Conversemos</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="seccion" id="preguntas">
+    <div class="seccion-cabeza"><div class="etiqueta">Preguntas frecuentes</div><h2>Lo que suelen preguntarnos</h2></div>
+    <div class="faq">
+      <details><summary>¿Detecta el 100% del phishing?</summary><p>Ninguna herramienta lo hace, y desconfía de quien lo prometa. MailSentry detecta los ataques más comunes contra MYPEs y explica cada caso. El caso más difícil es un proveedor real cuya cuenta fue hackeada; por eso también recomendamos verificar por teléfono todo pago o cambio de cuenta.</p></details>
+      <details><summary>¿Leen mis correos?</summary><p>El análisis es automático. Los correos se guardan solo para mostrar el panel y servir de evidencia, y puedes elegir que MailSentry funcione en tus propios servidores para que nada salga de tu empresa.</p></details>
+      <details><summary>¿Con qué correo funciona?</summary><p>Gmail y Google Workspace, Microsoft 365 / Outlook empresarial y el correo de hosting con cPanel u otros servidores IMAP.</p></details>
+      <details><summary>¿Mis empleados tienen que hacer algo?</summary><p>No. Siguen usando su correo normal. Opcionalmente pueden reenviar correos dudosos a un buzón de reportes para que se analicen.</p></details>
+      <details><summary>¿Bloquea o borra correos?</summary><p>Por defecto solo analiza y alerta. Si lo deseas, puede mover el phishing a una carpeta de cuarentena; nunca borra nada.</p></details>
+    </div>
+  </section>
+
+  <section class="seccion contacto" id="contacto">
+    <img class="contacto-ojo" src="recursos/logo.svg" alt="" width="160" height="96">
+    <h2>¿Quieres saber cuánto phishing recibe tu empresa?</h2>
+    <p>Agenda una demo gratuita de 20 minutos con datos de ejemplo, o pide un diagnóstico de tus correos.</p>
+    <div class="hero-acciones centrado">
+      <!-- PERSONALIZAR: tu correo y tu número de WhatsApp (formato internacional sin +, ej. 51999999999) -->
+      <a class="boton boton-claro" href="mailto:tu-correo@ejemplo.com?subject=Demo%20de%20MailSentry">Escribir por correo</a>
+      <a class="boton" href="https://wa.me/51900000000?text=Hola%2C%20quiero%20una%20demo%20de%20MailSentry">WhatsApp</a>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <div><img src="recursos/logo.svg" alt="" width="40" height="24"> <b>MailSentry</b></div>
+  <!-- PERSONALIZAR: tu nombre y el enlace a tu CV/portafolio -->
+  <p>Desarrollado por <a href="#">Tu Nombre</a> · Ciberseguridad y pentesting</p>
+  <p class="muted">Geolocalización por IP: DB-IP (CC BY 4.0) · Mapa: Natural Earth</p>
+</footer>
+
+<script src="recursos/tierra.js"></script>
+<script src="recursos/globo.js"></script>
+<script src="sitio.js"></script>
+</body>
+</html>

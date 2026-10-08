@@ -1,0 +1,25 @@
+{% macro veredicto(v) -%}
+  {%- set icono = {'legitimo': '✓', 'sospechoso': '!', 'phishing': '✕'}[v] -%}
+  <span class="badge b-{{ v }}"><span class="ico" aria-hidden="true">{{ icono }}</span>{{ VEREDICTOS[v] }}</span>
+{%- endmacro %}
+
+{% macro nivel(n) -%}
+  {%- set icono = {'bajo': '✓', 'medio': '!', 'alto': '▲', 'critico': '✕'}[n] -%}
+  <span class="badge b-{{ n }}"><span class="ico" aria-hidden="true">{{ icono }}</span>{{ NIVELES[n] }}</span>
+{%- endmacro %}
+
+{% macro csrf_input() -%}
+  <input type="hidden" name="_csrf" value="{{ csrf() }}">
+{%- endmacro %}
+
+{% macro delta(actual, previo, sube_es_malo=true) -%}
+  {%- if previo is not none -%}
+    {%- set dif = actual - previo -%}
+    {%- if dif == 0 -%}<span class="delta neutro">= sin cambios</span>
+    {%- else -%}
+      {%- set malo = (dif > 0) == sube_es_malo -%}
+      <span class="delta {{ 'malo' if malo else 'bueno' }}">{{ '▲' if dif > 0 else '▼' }} {{ '%+d' % dif }}</span>
+    {%- endif -%}
+    <span class="muted"> vs. periodo anterior</span>
+  {%- endif -%}
+{%- endmacro %}

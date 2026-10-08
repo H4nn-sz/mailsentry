@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<div class="acceso">
+  <form class="tarjeta" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf() }}">
+    <div class="marca">
+      <img class="logo" src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="46" height="28">
+      <span>MailSentry</span>
+    </div>
+    <div class="campo"><label for="usuario">Usuario</label><input id="usuario" type="text" name="usuario" required autofocus autocomplete="username"></div>
+    <div class="campo"><label for="password">Contraseña</label><input id="password" type="password" name="password" required autocomplete="current-password"></div>
+    <button class="btn btn-primario" type="submit" style="width:100%;justify-content:center">Ingresar</button>
+  </form>
+</div>
+{% endblock %}

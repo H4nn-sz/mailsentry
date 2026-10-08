@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "_macros.html" import nivel, veredicto with context %}
+{% block titulo %}Correos{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Correos analizados</h1>
+    <p>{{ total | miles }} resultado{{ '' if total == 1 else 's' }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('panel.exportar_csv', **consulta) }}">Exportar a Excel (CSV)</a>
+</div>
+
+<form class="tarjeta plana filtros" method="get" action="{{ url_for('panel.correos') }}" style="margin-bottom:16px">
+  <label class="sr" for="q">Buscar</label>
+  <input type="search" id="q" name="q" value="{{ filtros.q }}" placeholder="Asunto, remitente o destinatario" style="flex:1 1 220px">
+  <select name="veredicto" aria-label="Veredicto" data-auto>
+    <option value="">Todos los veredictos</option>
+    {% for k, v in [('amenazas', 'Amenazas (phishing + sospechosos)'), ('phishing', 'Phishing'), ('sospechoso', 'Sospechoso'), ('legitimo', 'Legítimo')] %}
+      <option value="{{ k }}" {{ 'selected' if filtros.veredicto == k }}>{{ v }}</option>
+    {% endfor %}
+  </select>
+  <select name="categoria" aria-label="Tipo de ataque" data-auto>
+    <option value="">Todos los tipos</option>
+    {% for k, v in CATEGORIAS.items() if k != 'ninguna' %}<option value="{{ k }}" {{ 'selected' if filtros.categoria == k }}>{{ v }}</option>{% endfor %}
+  </select>
+  <select name="estado" aria-label="Estado" data-auto>
+    <option value="">Todos los estados</option>
+    {% for k, v in ESTADOS.items() %}<option value="{{ k }}" {{ 'selected' if filtros.estado == k }}>{{ v }}</option>{% endfor %}
+  </select>
+  <select name="departamento" aria-label="Área" data-auto>
+    <option value="">Todas las áreas</option>
+    {% for d in departamentos %}<option value="{{ d }}" {{ 'selected' if filtros.departamento == d }}>{{ d }}</option>{% endfor %}
+  </select>
+  <select name="periodo" aria-label="Periodo" data-auto>
+    <option value="">Todo el historial</option>
+    {% for k, (texto, _) in periodos.items() if k != 'todo' %}<option value="{{ k }}" {{ 'selected' if filtros.periodo == k }}>{{ texto }}</option>{% endfor %}
+  </select>
+  {% for oculto in ('destinatario', 'dominio', 'marca', 'buzon', 'nivel', 'pais', 'proveedor') if filtros[oculto] %}
+    <input type="hidden" name="{{ oculto }}" value="{{ filtros[oculto] }}">
+    <span class="etq">{{ {'pais': 'origen'}.get(oculto, oculto) }}: {{ filtros[oculto] | pais if oculto == 'pais' else filtros[oculto] }}</span>
+  {% endfor %}
+  <button class="btn btn-primario" type="submit">Buscar</button>
+  {% if consulta %}<a class="btn" href="{{ url_for('panel.correos') }}">Limpiar</a>{% endif %}
+</form>
+
+<section class="tarjeta">
+  {% if correos %}
+  <div class="tabla-env"><table>
+    <thead><tr><th>Recibido</th><th>Correo</th><th>Para</th><th>Origen</th><th>Veredicto</th><th class="num">Puntaje</th><th>Tipo</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for c in correos %}
+      <tr>
+        <td class="num muted">{{ c.recibido_en | fecha('%d/%m/%y %H:%M') }}</td>
+        <td class="celda-asunto">
+          <a href="{{ url_for('panel.correo', correo_id=c.id) }}">{{ c.asunto or '(sin asunto)' }}</a>
+          <small>{{ c.remitente_nombre }} &lt;{{ c.remitente_email }}&gt;</small>
+        </td>
+        <td>{{ c.destinatario_principal }}</td>
+        <td class="sec" style="white-space:nowrap">{% if c.proveedor_origen %}<span title="El proveedor oculta el origen real">vía {{ c.proveedor_origen.split(' (')[0] }}</span>{% elif c.pais_origen %}{{ c.pais_origen | pais }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{{ veredicto(c.veredicto_efectivo) }}</td>
+        <td class="num">{{ c.puntaje }}</td>
+        <td>{% if c.categoria != 'ninguna' %}<span class="etq">{{ CATEGORIAS[c.categoria] }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="sec">{{ ESTADOS[c.estado] }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <div class="paginacion">
+    {% if pagina > 1 %}<a class="btn btn-chico" href="{{ url_for('panel.correos', pagina=pagina - 1, **consulta) }}">← Anterior</a>{% endif %}
+    <span>Página {{ pagina }} de {{ paginas }}</span>
+    {% if pagina < paginas %}<a class="btn btn-chico" href="{{ url_for('panel.correos', pagina=pagina + 1, **consulta) }}">Siguiente →</a>{% endif %}
+  </div>
+  {% else %}
+    <div class="vacio">No hay correos que coincidan con los filtros.</div>
+  {% endif %}
+</section>
+{% endblock %}

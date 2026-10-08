@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Usuarios{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Usuarios y auditoría</h1>
+    <p><b>Lector</b>: solo consulta · <b>Analista</b>: revisa correos y administra listas y personal · <b>Administrador</b>: todo.</p>
+  </div>
+</div>
+
+<div class="grid g-12">
+  <form class="tarjeta" method="post" action="{{ url_for('panel.crear_usuario') }}" style="align-self:start">
+    {{ csrf_input() }}
+    <h3>Nuevo usuario</h3>
+    <div class="campo"><label for="u">Usuario</label><input id="u" type="text" name="usuario" required autocomplete="off"></div>
+    <div class="campo"><label for="n">Nombre</label><input id="n" type="text" name="nombre"></div>
+    <div class="campo"><label for="r">Rol</label><select id="r" name="rol">{% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == 'analista' }}>{{ NOMBRES_ROL[r] }}</option>{% endfor %}</select></div>
+    <div class="campo"><label for="p">Contraseña (mínimo 10 caracteres)</label><input id="p" type="password" name="password" required minlength="10" autocomplete="new-password"></div>
+    <div class="campo"><label for="c">Repetir contraseña</label><input id="c" type="password" name="confirmacion" required minlength="10" autocomplete="new-password"></div>
+    <button class="btn btn-primario" type="submit">Crear usuario</button>
+  </form>
+
+  <section class="tarjeta">
+    <div class="tabla-env"><table>
+      <thead><tr><th>Usuario</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+      {% for u in usuarios %}
+        <tr>
+          <td><b>{{ u.usuario }}</b><br><small class="muted">{{ u.nombre }}</small></td>
+          <td>
+            <form method="post" action="{{ url_for('panel.editar_usuario', usuario_id=u.id) }}">{{ csrf_input() }}<input type="hidden" name="accion" value="rol">
+              <select name="rol" data-auto aria-label="Rol de {{ u.usuario }}" {{ 'disabled' if u.id == usuario_actual.id }}>{% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == u.rol }}>{{ NOMBRES_ROL[r] }}</option>{% endfor %}</select>
+            </form>
+          </td>
+          <td class="muted">{{ u.ultimo_acceso | fecha if u.ultimo_acceso else 'nunca' }}</td>
+          <td>{{ 'Activo' if u.activo else 'Desactivado' }}</td>
+          <td style="white-space:nowrap">
+            {% if u.id != usuario_actual.id %}
+            <form method="post" action="{{ url_for('panel.editar_usuario', usuario_id=u.id) }}" style="display:inline">{{ csrf_input() }}
+              <button class="btn btn-chico" name="accion" value="{{ 'desactivar' if u.activo else 'activar' }}" type="submit">{{ 'Desactivar' if u.activo else 'Activar' }}</button>
+            </form>
+            {% endif %}
+            <details style="display:inline-block">
+              <summary class="btn btn-chico">Cambiar clave</summary>
+              <form method="post" action="{{ url_for('panel.editar_usuario', usuario_id=u.id) }}" style="margin-top:6px">{{ csrf_input() }}
+                <input type="hidden" name="accion" value="password">
+                <input type="password" name="password" placeholder="Nueva" minlength="10" required aria-label="Nueva contraseña" autocomplete="new-password">
+                <input type="password" name="confirmacion" placeholder="Repetir" minlength="10" required aria-label="Repetir contraseña" autocomplete="new-password">
+                <button class="btn btn-chico" type="submit">Guardar</button>
+              </form>
+            </details>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<section class="tarjeta mt">
+  <h3>Bitácora de auditoría (últimas 60 acciones)</h3>
+  <div class="tabla-env"><table>
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {% for e in eventos %}<tr><td class="num muted">{{ e.fecha | fecha }}</td><td>{{ e.usuario }}</td><td><span class="etq">{{ e.accion }}</span></td><td class="sec">{{ e.detalle }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

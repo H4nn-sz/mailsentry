@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Configuración inicial{% endblock %}
+{% block contenido %}
+<div class="asistente">
+  <div class="cabecera">
+    <div>
+      <div class="migas">Configuración inicial · paso {{ paso }} de 3</div>
+      <h1>{{ ['Su empresa', 'Sus directivos', 'Conectar el correo'][paso - 1] }}</h1>
+    </div>
+  </div>
+  <ol class="pasos" aria-label="Progreso">
+    {% for n, texto in [(1, 'Empresa'), (2, 'Directivos'), (3, 'Correo')] %}
+      <li class="{{ 'hecho' if n < paso else 'actual' if n == paso }}" {% if n == paso %}aria-current="step"{% endif %}>
+        <span>{{ '✓' if n < paso else n }}</span>{{ texto }}</li>
+    {% endfor %}
+  </ol>
+
+  {% if paso == 1 %}
+  <form class="tarjeta" method="post" action="{{ url_for('panel.bienvenida', paso=1) }}">
+    {{ csrf_input() }}
+    <div class="campo"><label for="empresa">Nombre de la empresa</label>
+      <input id="empresa" type="text" name="empresa" required value="{{ ajustes.get('empresa_nombre', '') }}" placeholder="Comercial Ejemplo S.A.C."></div>
+    <div class="campo"><label for="dominios">Dominios de correo de la empresa (uno por línea)</label>
+      <textarea id="dominios" name="dominios" style="min-height:80px" required placeholder="miempresa.com.pe">{{ dominios | join('\n') }}</textarea>
+      <small class="muted">Lo que va después de la @ en sus correos. MailSentry los protegerá contra suplantación e imitaciones.</small></div>
+    <div class="campo"><label for="ciudad">Ciudad</label>
+      <select id="ciudad" name="ciudad">{% for c in ciudades %}<option {{ 'selected' if c == ajustes.get('ciudad', 'Lima') }}>{{ c }}</option>{% endfor %}</select>
+      <small class="muted">Se usa como destino de los ataques en el globo del panel.</small></div>
+    <button class="btn btn-primario" type="submit">Continuar</button>
+  </form>
+
+  {% elif paso == 2 %}
+  <form class="tarjeta" method="post" action="{{ url_for('panel.bienvenida', paso=2) }}">
+    {{ csrf_input() }}
+    <p class="sec">Los atacantes se hacen pasar por gerentes y jefes para pedir transferencias urgentes (fraude del CEO).
+      Registre a las personas que suelen ser suplantadas, con el nombre tal como firman sus correos.</p>
+    <div class="tabla-env"><table>
+      <thead><tr><th>Nombre y apellido</th><th>Correo de la empresa</th><th>Cargo</th></tr></thead>
+      <tbody>
+      {% for i in range(5) %}{% set d = directivos[i] if i < directivos | length else none %}
+        <tr>
+          <td><input type="text" name="nombre" value="{{ d.nombre if d else '' }}" placeholder="{{ 'Ana Torres' if i == 0 else '' }}" aria-label="Nombre {{ i + 1 }}" style="width:100%"></td>
+          <td><input type="email" name="email" value="{{ d.email if d else '' }}" placeholder="{{ 'gerencia@miempresa.com.pe' if i == 0 else '' }}" aria-label="Correo {{ i + 1 }}" style="width:100%"></td>
+          <td><input type="text" name="cargo" value="{{ d.cargo if d else '' }}" placeholder="{{ 'Gerente General' if i == 0 else '' }}" aria-label="Cargo {{ i + 1 }}" style="width:100%"></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p class="muted" style="margin-top:10px">Podrá agregar más personas después en <b>Personal</b>.</p>
+    <div class="acciones">
+      <a class="btn" href="{{ url_for('panel.bienvenida', paso=1) }}">Atrás</a>
+      <button class="btn btn-primario" type="submit">Continuar</button>
+    </div>
+  </form>
+
+  {% else %}
+  <form class="tarjeta" method="post" action="{{ url_for('panel.bienvenida', paso=3) }}">
+    {{ csrf_input() }}
+    {% if buzones %}
+      <p><b>{{ buzones | length }} buzón(es) configurado(s).</b> MailSentry los revisará automáticamente. Puede ver su estado en <b>Buzones</b>.</p>
+    {% else %}
+      <p class="sec">Hay dos formas de empezar:</p>
+      <div class="grid g-2" style="margin-bottom:14px">
+        <div class="tarjeta plana"><h3>Ya mismo</h3><p class="sec">Analice correos sospechosos subiéndolos o pegando su código fuente en <b>Analizar</b>.</p></div>
+        <div class="tarjeta plana"><h3>Protección automática</h3><p class="sec">Conecte los buzones (Gmail, hosting cPanel o Microsoft 365). Su proveedor de MailSentry los configura de forma segura, sin compartir contraseñas por chat ni correo.</p></div>
+      </div>
+    {% endif %}
+    <div class="acciones">
+      <a class="btn" href="{{ url_for('panel.bienvenida', paso=2) }}">Atrás</a>
+      <button class="btn btn-primario" type="submit">Ir al panel</button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

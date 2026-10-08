@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% from "_macros.html" import nivel, veredicto, delta with context %}
+{% block titulo %}Panel{% endblock %}
+{% block contenido %}
+{% set t = datos.totales %}{% set p = datos.previo %}{% set o = datos.origen %}
+<div class="cabecera compacta">
+  <div>
+    <div class="migas">{{ datos.periodo_txt }} · {{ datos.desde }} – {{ datos.hasta }}{% if buzon %} · Buzón {{ buzon }}{% endif %}</div>
+    <h1>Panel de amenazas</h1>
+  </div>
+  <form class="filtros" method="get" action="{{ url_for('panel.inicio') }}">
+    <div class="chips" role="group" aria-label="Periodo">
+      {% for clave in periodos %}
+        <a class="chip {{ 'activo' if clave == datos.periodo }}" href="{{ url_for('panel.inicio', periodo=clave, buzon=buzon) }}"
+           {% if clave == datos.periodo %}aria-current="true"{% endif %}>{{ {'7d': '7 días', '30d': '30 días', '90d': '90 días', '12m': '12 meses', 'todo': 'Todo'}[clave] }}</a>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="periodo" value="{{ datos.periodo }}">
+    <label class="sr" for="f-buzon">Buzón</label>
+    <select id="f-buzon" name="buzon" data-auto>
+      <option value="">Todos los buzones</option>
+      {% for b in buzones %}<option value="{{ b }}" {{ 'selected' if b == buzon }}>{{ b }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if pendiente_configurar and tiene_rol('admin') %}
+<div class="aviso aviso-alerta"><div><b>Falta la configuración inicial.</b> Indique su empresa, dominios y directivos en
+  <a href="{{ url_for('panel.bienvenida') }}">3 pasos rápidos</a>.</div></div>
+{% elif sin_directivos %}
+<div class="aviso aviso-alerta"><div><b>Registre a sus directivos.</b> El fraude del CEO se detecta cuando alguien externo usa el
+  nombre de un gerente o jefe. Márquelos como <i>directivo</i> en <a href="{{ url_for('panel.personal') }}">Personal</a>
+  (con nombre y apellido tal como firman sus correos).</div></div>
+{% endif %}
+
+{% if not hay_correos %}
+<div class="tarjeta">
+  <h2>Aún no hay correos analizados</h2>
+  <p class="sec" style="margin-top:8px">Para empezar puede:</p>
+  <ul class="sec">
+    <li>Conectar los buzones de la empresa en <code>config.toml</code> (ver <a href="{{ url_for('panel.buzones') }}">Buzones</a>).</li>
+    <li>Subir archivos <code>.eml</code> en <a href="{{ url_for('panel.analizar') }}">Analizar</a>.</li>
+    <li>Cargar la demostración: <code>python main.py demo</code> y luego <code>python main.py iniciar --demo</code>.</li>
+  </ul>
+</div>
+{% else %}
+
+<section class="kpis" aria-label="Indicadores principales">
+  <a class="tarjeta kpi kpi-hero" href="{{ url_for('panel.correos', veredicto='phishing', periodo=datos.periodo, buzon=buzon) }}">
+    <div class="etiqueta">Phishing detectado</div>
+    <div class="valor">{{ t.phishing | miles }}</div>
+    <div class="detalle">{{ t.malware }} con adjunto malicioso{% if p %} · {{ delta(t.phishing, p.phishing) }}{% endif %}</div>
+  </a>
+  <a class="tarjeta kpi" href="{{ url_for('panel.correos', periodo=datos.periodo, buzon=buzon) }}">
+    <div class="etiqueta">Correos analizados</div>
+    <div class="valor">{{ t.analizados | miles }}</div>
+    <div class="detalle">{{ t.legitimos | miles }} legítimos</div>
+  </a>
+  <a class="tarjeta kpi" href="{{ url_for('panel.correos', veredicto='sospechoso', periodo=datos.periodo, buzon=buzon) }}">
+    <div class="etiqueta">Sospechosos</div>
+    <div class="valor">{{ t.sospechosos | miles }}</div>
+    <div class="detalle">{% if p %}{{ delta(t.sospechosos, p.sospechosos) }}{% else %}a revisar por un analista{% endif %}</div>
+  </a>
+  <div class="tarjeta kpi">
+    <div class="etiqueta">Tasa de phishing</div>
+    <div class="valor">{{ t.tasa_phishing }}%</div>
+    <div class="detalle">de todo el correo recibido</div>
+  </div>
+  <a class="tarjeta kpi" href="{{ url_for('panel.correos', veredicto='amenazas', estado='nuevo', periodo=datos.periodo, buzon=buzon) }}">
+    <div class="etiqueta">Pendientes de revisión</div>
+    <div class="valor">{{ t.pendientes | miles }}</div>
+    <div class="detalle">amenazas sin revisar</div>
+  </a>
+</section>
+
+<section class="tarjeta globo-tarjeta esquinas" aria-labelledby="titulo-globo">
+  <div class="globo-zona">
+    <header>
+      <div>
+        <div class="etiqueta-hud">Origen de los ataques</div>
+        <h2 id="titulo-globo">¿Desde dónde atacan a la empresa?</h2>
+        <p>País del servidor que envió cada amenaza. Arrastre para girar · clic en un foco para ver sus correos.</p>
+      </div>
+      {% if o.origenes %}<span class="pastilla">{{ o.origenes | length }} país{{ '' if o.origenes | length == 1 else 'es' }}</span>{% endif %}
+    </header>
+    <canvas id="globo" class="globo-lienzo" role="img"
+            aria-label="Globo terráqueo con el origen de las amenazas. {% for x in o.origenes[:5] %}{{ x.pais }}: {{ x.valor }}. {% endfor %}La lista completa está a la derecha."></canvas>
+    <div class="globo-pie">
+      <span><i class="clave-foco"></i>Altura = cantidad de amenazas</span>
+      <span><i class="clave-arco"></i>Ruta hacia la empresa</span>
+      <span><i class="clave-empresa"></i>{{ empresa }}</span>
+    </div>
+  </div>
+  <div class="globo-panel">
+    {% if not o.geoip_disponible %}
+      <div class="aviso aviso-alerta" style="margin:0"><div>Falta la base de geolocalización. Instálela con
+        <code>python main.py actualizar-geoip</code> y luego <code>python main.py reanalizar</code>.</div></div>
+    {% endif %}
+    <div>
+      <h3>Por región</h3>
+      <div class="lista-origen">
+        {% set max_r = (o.regiones | map(attribute='valor') | max) if o.regiones else 1 %}
+        {% for r in o.regiones %}
+          <div class="origen-fila"><span class="pos">{{ '%02d' % loop.index }}</span><span class="nom">{{ r.etiqueta }}</span><b>{{ r.valor }}</b>
+            <span class="pista"><span style="width: {{ (r.valor / max_r * 100) | round(1) }}%"></span></span></div>
+        {% else %}<div class="muted">Sin datos de origen en este periodo.</div>{% endfor %}
+      </div>
+    </div>
+    <div>
+      <h3>Países principales</h3>
+      <div class="lista-origen">
+        {% set max_p = (o.origenes | map(attribute='valor') | max) if o.origenes else 1 %}
+        {% for x in o.origenes[:8] %}
+          <a href="{{ url_for('panel.correos', pais=x.codigo, veredicto='amenazas', periodo=datos.periodo) }}">
+            <div class="origen-fila"><span class="pos">{{ x.codigo }}</span><span class="nom">{{ x.pais }}<small>{{ x.region }}</small></span><b>{{ x.valor }}</b>
+              <span class="pista"><span style="width: {{ (x.valor / max_p * 100) | round(1) }}%"></span></span></div>
+          </a>
+        {% else %}<div class="muted">—</div>{% endfor %}
+      </div>
+    </div>
+    <div class="nota">
+      {% set via = o.via_proveedor | sum(attribute='valor') %}
+      {% if via %}<b style="color:var(--texto-2)">{{ via }} llegaron vía {{ o.via_proveedor | map(attribute='etiqueta') | join(', ') }}:</b>
+        el proveedor oculta el origen real, por eso no aparecen en el globo.<br>{% endif %}
+      {% if o.sin_origen %}{{ o.sin_origen }} sin datos de origen (p. ej. subidos a mano sin cabeceras).<br>{% endif %}
+      El país es el del servidor de envío, no necesariamente el del atacante (puede usar VPN o servidores alquilados).
+      {% if o.demo %}<br><i>Demostración: ubicaciones ficticias.</i>{% elif o.geoip_disponible %}<br>IP Geolocation by <a href="https://db-ip.com" rel="noopener">DB-IP</a>.{% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="grid g-21 mt">
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">Actividad</div><h2>Amenazas recibidas por {{ datos.serie.unidad }}</h2></div>
+      <button class="btn btn-chico" type="button" data-alternar aria-pressed="false">Ver tabla</button>
+    </header>
+    <div class="leyenda" style="margin-bottom:8px">
+      <span><i style="background:var(--calor)"></i>Phishing</span>
+      <span><i style="background:var(--serie-gris)"></i>Sospechosos</span>
+    </div>
+    <div data-vista="grafico"><div class="grafico" id="g-serie"></div></div>
+    <div data-vista="tabla" class="oculto" id="t-serie"></div>
+  </section>
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">Clasificación</div><h2>Tipos de ataque</h2></div>
+      <button class="btn btn-chico" type="button" data-alternar aria-pressed="false">Ver tabla</button>
+    </header>
+    <div data-vista="grafico"><div id="g-categorias"></div></div>
+    <div data-vista="tabla" class="oculto" id="t-categorias"></div>
+  </section>
+</div>
+
+<div class="grid g-3 mt">
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">Objetivos</div><h2>Personas más atacadas</h2></div>
+      <button class="btn btn-chico" type="button" data-alternar aria-pressed="false">Ver tabla</button>
+    </header>
+    <div data-vista="grafico"><div id="g-objetivos"></div></div>
+    <div data-vista="tabla" class="oculto" id="t-objetivos"></div>
+  </section>
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">Objetivos</div><h2>Áreas más atacadas</h2></div>
+      <button class="btn btn-chico" type="button" data-alternar aria-pressed="false">Ver tabla</button>
+    </header>
+    <div data-vista="grafico"><div id="g-departamentos"></div></div>
+    <div data-vista="tabla" class="oculto" id="t-departamentos"></div>
+  </section>
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">Suplantación</div><h2>Marcas imitadas</h2></div>
+      <button class="btn btn-chico" type="button" data-alternar aria-pressed="false">Ver tabla</button>
+    </header>
+    <div data-vista="grafico"><div id="g-marcas" data-vacio="Ninguna marca suplantada"></div></div>
+    <div data-vista="tabla" class="oculto" id="t-marcas"></div>
+  </section>
+</div>
+
+<div class="grid g-21 mt">
+  <section class="tarjeta">
+    <header>
+      <div><div class="etiqueta-hud">En vivo</div><h2>Últimas amenazas</h2></div>
+      <a class="btn btn-chico" href="{{ url_for('panel.correos', veredicto='amenazas', periodo=datos.periodo, buzon=buzon) }}">Ver todas</a>
+    </header>
+    {% if datos.recientes %}
+    <div class="tabla-env"><table>
+      <thead><tr><th>Fecha</th><th>Correo</th><th>Para</th><th>Tipo</th><th>Riesgo</th></tr></thead>
+      <tbody>
+      {% for r in datos.recientes %}
+        <tr>
+          <td class="num muted">{{ r.fecha }}</td>
+          <td class="celda-asunto"><a href="{{ url_for('panel.correo', correo_id=r.id) }}">{{ r.asunto or '(sin asunto)' }}</a><small>{{ r.remitente }} · {{ r.remitente_email }}</small></td>
+          <td>{{ r.destinatario }}</td>
+          <td><span class="etq">{{ r.categoria }}</span></td>
+          <td>{{ nivel(r.nivel) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<div class="vacio">Sin amenazas en este periodo</div>{% endif %}
+  </section>
+  <section class="tarjeta">
+    <header><div><div class="etiqueta-hud">Infraestructura</div><h2>Dominios atacantes</h2></div></header>
+    {% if datos.dominios %}
+    <div class="tabla-env"><table>
+      <thead><tr><th>Dominio</th><th class="num">Correos</th></tr></thead>
+      <tbody>
+      {% for d in datos.dominios %}
+        <tr><td class="mono"><a href="{{ url_for('panel.correos', dominio=d.dominio, periodo=datos.periodo) }}">{{ d.dominio | desarmar }}</a></td><td class="num">{{ d.valor }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<div class="vacio">Sin phishing en este periodo</div>{% endif %}
+  </section>
+</div>
+<script type="application/json" id="datos-panel">{{ dict(datos, buzon=buzon) | tojson }}</script>
+{% endif %}
+{% endblock %}
+{% block scripts_previos %}
+<script src="{{ url_for('static', filename='js/tierra.js') }}"></script>
+<script src="{{ url_for('static', filename='js/globo.js') }}"></script>
+{% endblock %}

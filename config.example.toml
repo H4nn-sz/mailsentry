@@ -1,0 +1,82 @@
+# ==============================================================
+#  MailSentry · Configuración
+#  Copia este archivo como config.toml y ajusta los valores.
+#  (Si config.toml no existe, MailSentry lo crea a partir de este.)
+# ==============================================================
+
+[empresa]
+nombre = "Mi Empresa S.A.C."
+# Dominios de correo propios. Se usan para detectar suplantación interna
+# y dominios parecidos al suyo (typosquatting), la base del fraude del CEO.
+dominios = ["miempresa.com.pe"]
+zona_horaria = "America/Lima"
+# Latitud y longitud de la empresa: destino de los arcos en el globo del panel
+ubicacion = [-12.046, -77.043]
+
+[servidor]
+# "127.0.0.1" = solo esta PC. "0.0.0.0" = visible en la red local (ver README).
+host = "127.0.0.1"
+puerto = 8050
+abrir_navegador = true
+
+[base_datos]
+# SQLite es suficiente para una MYPE (decenas de miles de correos).
+# Para una empresa grande, cambie a PostgreSQL sin tocar el código:
+# url = "postgresql+psycopg://usuario:clave@servidor:5432/mailsentry"
+url = "sqlite:///data/mailsentry.db"
+# Guarda el .eml original comprimido: permite reanalizar y sirve como evidencia.
+guardar_original = true
+
+[deteccion]
+umbral_sospechoso = 35   # puntaje desde el que un correo se marca como sospechoso
+umbral_phishing = 65     # puntaje desde el que se considera phishing
+umbral_critico = 85      # puntaje desde el que el riesgo es crítico
+peso_ml = 0.30           # peso del modelo de IA en el puntaje final (0 = desactivado)
+
+[monitoreo]
+intervalo_segundos = 120      # cada cuánto revisar los buzones
+historial_inicial_dias = 30   # al conectar un buzón nuevo, cuántos días hacia atrás analizar
+lote_maximo = 200             # correos máximos por buzón en cada revisión
+
+[alertas]
+# Webhook de Microsoft Teams, Slack, Discord o Google Chat. Vacío = sin alertas.
+webhook_url = ""
+nivel_minimo = "alto"         # bajo | medio | alto | critico
+
+[inteligencia]
+# Nombre de la variable de entorno que contiene la API key de VirusTotal (opcional).
+virustotal_api_key_env = "VT_API_KEY"
+# Listas públicas de URLs de phishing. Se descargan con: python main.py actualizar-feeds
+feeds = ["https://openphish.com/feed.txt"]
+
+[api]
+# Variable de entorno con el token para la API REST (/api/v1/...). Vacío = API desactivada.
+token_env = "MAILSENTRY_API_TOKEN"
+
+# --------------------------------------------------------------
+# Buzones a vigilar. Las contraseñas NUNCA van en este archivo:
+# se leen de variables de entorno o del archivo .env
+# --------------------------------------------------------------
+
+# Gmail / Google Workspace, hosting cPanel, Zoho, etc. (IMAP)
+# [[buzones]]
+# nombre = "Gerencia"
+# conexion = "imap"
+# servidor = "imap.gmail.com"
+# puerto = 993
+# usuario = "gerencia@miempresa.com.pe"
+# password_env = "MAILSENTRY_PASS_GERENCIA"
+# carpeta = "INBOX"
+# cuarentena = ""          # carpeta destino del phishing (vacío = no mover nada)
+# tipo = "entrada"         # "entrada" o "reportes" (buzón donde el personal reenvía correos sospechosos como adjunto)
+
+# Microsoft 365 / Exchange Online (API Microsoft Graph, permiso de aplicación Mail.Read)
+# [[buzones]]
+# nombre = "Finanzas"
+# conexion = "graph"
+# usuario = "finanzas@miempresa.com.pe"
+# tenant_id = "00000000-0000-0000-0000-000000000000"
+# client_id = "00000000-0000-0000-0000-000000000000"
+# secret_env = "MAILSENTRY_GRAPH_SECRET"
+# carpeta = "inbox"
+# cuarentena = ""          # p. ej. "junkemail" (requiere permiso Mail.ReadWrite)

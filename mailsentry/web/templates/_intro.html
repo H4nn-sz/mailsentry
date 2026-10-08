@@ -1,0 +1,52 @@
+{# Animación de entrada de MailSentry: el ojo se abre, vigila a los lados, se cierra y abre el panel. #}
+<div class="intro" id="intro" role="presentation" aria-hidden="true">
+  <div class="intro-hoja intro-hoja-sup"></div>
+  <div class="intro-hoja intro-hoja-inf"></div>
+  <div class="intro-escena">
+    <div class="intro-haz"></div>
+    <svg class="intro-ojo" viewBox="0 0 200 120">
+      <defs>
+        <filter id="intro-halo" x="-25%" y="-40%" width="150%" height="180%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="borroso"/>
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="ruido"/>
+          <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -2.2 1.35" result="motas"/>
+          <feComposite in="borroso" in2="motas" operator="in"/>
+        </filter>
+        <radialGradient id="intro-iris" cx="0.5" cy="0.45" r="0.6">
+          <stop offset="0" stop-color="#2b2b2b"/><stop offset="1" stop-color="#050505"/>
+        </radialGradient>
+        <radialGradient id="intro-brillo" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0.55" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </radialGradient>
+        <clipPath id="intro-parpado"><path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z"/></clipPath>
+        <line id="intro-rayo" x1="0" y1="-18" x2="0" y2="-30" stroke="#fff" stroke-width="3.2"/>
+        <line id="intro-rayo-fino" x1="0" y1="-19" x2="0" y2="-27" stroke="#fff" stroke-width="1.6" opacity=".85"/>
+      </defs>
+      <g class="intro-parpado">
+        <path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z" fill="#fff" opacity=".9" filter="url(#intro-halo)"/>
+        <path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z" fill="#f4f4f4"/>
+        <g clip-path="url(#intro-parpado)">
+          <g class="intro-iris">
+            <circle cx="100" cy="60" r="37" fill="url(#intro-iris)"/>
+            <g transform="translate(100 60)">
+              <use href="#intro-rayo"/><use href="#intro-rayo" transform="rotate(45)"/>
+              <use href="#intro-rayo" transform="rotate(90)"/><use href="#intro-rayo" transform="rotate(135)"/>
+              <use href="#intro-rayo" transform="rotate(180)"/><use href="#intro-rayo" transform="rotate(225)"/>
+              <use href="#intro-rayo" transform="rotate(270)"/><use href="#intro-rayo" transform="rotate(315)"/>
+              <use href="#intro-rayo-fino" transform="rotate(22.5)"/><use href="#intro-rayo-fino" transform="rotate(67.5)"/>
+              <use href="#intro-rayo-fino" transform="rotate(112.5)"/><use href="#intro-rayo-fino" transform="rotate(157.5)"/>
+              <use href="#intro-rayo-fino" transform="rotate(202.5)"/><use href="#intro-rayo-fino" transform="rotate(247.5)"/>
+              <use href="#intro-rayo-fino" transform="rotate(292.5)"/><use href="#intro-rayo-fino" transform="rotate(337.5)"/>
+            </g>
+            <circle class="intro-pupila" cx="100" cy="60" r="16" fill="url(#intro-brillo)"/>
+            <circle cx="100" cy="60" r="10.5" fill="#fff"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+    <div class="intro-linea"></div>
+    <div class="intro-nombre">MailSentry</div>
+  </div>
+  <div class="intro-grano"></div>
+  <div class="intro-saltar">Clic o cualquier tecla para saltar</div>
+</div>

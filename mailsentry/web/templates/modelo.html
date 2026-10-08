@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_input with context %}
+{% block titulo %}Inteligencia artificial{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+  <div>
+    <h1>Modelo de inteligencia artificial</h1>
+    <p>Aprende del correo de su empresa: cada correo que un analista confirma como phishing o legítimo lo entrena.
+      Complementa a las reglas (peso actual: {{ '%.0f' % (peso * 100) }}% del puntaje).</p>
+  </div>
+</div>
+
+{% if not disponible %}
+<div class="aviso aviso-alerta"><div>scikit-learn no está instalado: MailSentry funciona solo con reglas.
+  Instálelo con <code>pip install scikit-learn</code> para activar la IA.</div></div>
+{% endif %}
+
+<div class="grid g-2">
+  <section class="tarjeta">
+    <h3>Estado del modelo</h3>
+    {% if info %}
+      <dl class="datos">
+        <dt>Entrenado</dt><dd>{{ info.entrenado_en.replace('T', ' ') }}</dd>
+        <dt>Muestras</dt><dd>{{ info.muestras }} ({{ info.phishing }} phishing, {{ info.legitimos }} legítimos)</dd>
+        <dt>Exactitud</dt><dd>{{ '%.1f' % (info.exactitud * 100) }}%</dd>
+        <dt>Precisión</dt><dd>{{ '%.1f' % (info.precision * 100) }}% <span class="muted">(de lo que marca, cuánto era phishing)</span></dd>
+        <dt>Sensibilidad</dt><dd>{{ '%.1f' % (info.sensibilidad * 100) }}% <span class="muted">(del phishing real, cuánto detecta)</span></dd>
+        <dt>Validación</dt><dd class="muted">validación cruzada en {{ info.pliegues }} partes</dd>
+      </dl>
+    {% else %}
+      <p class="sec">Todavía no hay un modelo entrenado. Mientras tanto, la detección se basa solo en las reglas.</p>
+    {% endif %}
+  </section>
+  <section class="tarjeta">
+    <h3>Datos para entrenar</h3>
+    <dl class="datos">
+      <dt>Confirmados phishing</dt><dd>{{ conteo.get('phishing', 0) }}</dd>
+      <dt>Confirmados legítimos</dt><dd>{{ conteo.get('legitimo', 0) }}</dd>
+      <dt>Total utilizable</dt><dd>{{ muestras }} correos ({{ positivos }} phishing) <span class="muted">· incluye correos claramente legítimos no reportados en 7 días</span></dd>
+      <dt>Mínimo necesario</dt><dd>{{ minimo }} de cada tipo</dd>
+    </dl>
+    {% if tiene_rol('admin') %}
+    <div class="acciones" style="margin-top:14px">
+      <form method="post" action="{{ url_for('panel.entrenar') }}">{{ csrf_input() }}<button class="btn btn-primario" type="submit" {{ 'disabled' if not disponible }}>Entrenar ahora</button></form>
+      <form method="post" action="{{ url_for('panel.reanalizar_todo') }}" data-confirmar="Se volverán a analizar todos los correos guardados. ¿Continuar?">{{ csrf_input() }}<button class="btn" type="submit">Reanalizar todos los correos</button></form>
+    </div>
+    {% endif %}
+  </section>
+</div>
+<section class="tarjeta mt">
+  <h3>Cómo funciona</h3>
+  <p class="sec">El modelo (regresión logística sobre palabras y fragmentos de texto) estima la probabilidad de phishing de cada
+    correo. Su opinión se combina con las reglas, pero una señal crítica de las reglas (adjunto ejecutable, dominio que
+    imita al suyo, lista de bloqueo...) nunca puede ser anulada por la IA. Las métricas se miden con correos que el modelo
+    no vio durante el entrenamiento. Mientras más correos revisen sus analistas, mejor se adapta a los ataques que recibe
+    su empresa.</p>
+</section>
+{% endblock %}

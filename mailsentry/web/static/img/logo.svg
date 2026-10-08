@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" role="img" aria-label="MailSentry">
+  <!-- Logo de MailSentry: ojo vigilante mirando al frente (diseño original en vector) -->
+  <defs>
+    <!-- Halo granulado alrededor del ojo (el blanco queda limpio, el grano solo en el borde) -->
+    <filter id="halo" x="-20%" y="-30%" width="140%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="borroso"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="ruido"/>
+      <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -2.2 1.35" result="motas"/>
+      <feComposite in="borroso" in2="motas" operator="in"/>
+    </filter>
+    <radialGradient id="esclera" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.7" stop-color="#f2f2f2"/>
+      <stop offset="1" stop-color="#cfcfcf"/>
+    </radialGradient>
+    <radialGradient id="iris" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#2b2b2b"/>
+      <stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <radialGradient id="brillo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.55" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="parpado">
+      <path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z"/>
+    </clipPath>
+    <line id="rayo" x1="0" y1="-18" x2="0" y2="-30" stroke="#fff" stroke-width="3.2"/>
+    <line id="rayo-fino" x1="0" y1="-19" x2="0" y2="-27" stroke="#fff" stroke-width="1.6" opacity=".85"/>
+  </defs>
+  <path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z" fill="#fff" opacity=".9" filter="url(#halo)"/>
+  <path d="M6 60 C50 14 150 14 194 60 C150 106 50 106 6 60 Z" fill="url(#esclera)"/>
+  <g clip-path="url(#parpado)">
+    <circle cx="100" cy="60" r="37" fill="url(#iris)"/>
+    <!-- rayos del iris repartidos de forma simétrica -->
+    <g transform="translate(100 60)">
+      <use href="#rayo" transform="rotate(0)"/><use href="#rayo" transform="rotate(45)"/>
+      <use href="#rayo" transform="rotate(90)"/><use href="#rayo" transform="rotate(135)"/>
+      <use href="#rayo" transform="rotate(180)"/><use href="#rayo" transform="rotate(225)"/>
+      <use href="#rayo" transform="rotate(270)"/><use href="#rayo" transform="rotate(315)"/>
+      <use href="#rayo-fino" transform="rotate(22.5)"/><use href="#rayo-fino" transform="rotate(67.5)"/>
+      <use href="#rayo-fino" transform="rotate(112.5)"/><use href="#rayo-fino" transform="rotate(157.5)"/>
+      <use href="#rayo-fino" transform="rotate(202.5)"/><use href="#rayo-fino" transform="rotate(247.5)"/>
+      <use href="#rayo-fino" transform="rotate(292.5)"/><use href="#rayo-fino" transform="rotate(337.5)"/>
+    </g>
+    <circle cx="100" cy="60" r="16" fill="url(#brillo)"/>
+    <circle cx="100" cy="60" r="10.5" fill="#fff"/>
+  </g>
+</svg>
