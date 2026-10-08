@@ -71,6 +71,9 @@ def calcular(plan: str, buzones: int, precios: dict) -> dict:
 
 
 def main() -> None:
+    # Algunas consolas de Windows no usan UTF-8 y fallan al imprimir tildes o flechas
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     p = argparse.ArgumentParser(description="Genera una propuesta comercial de MailSentry")
     p.add_argument("empresa", help="razón social o nombre de la empresa cliente")
     p.add_argument("--contacto", default="", help="persona a quien va dirigida")
