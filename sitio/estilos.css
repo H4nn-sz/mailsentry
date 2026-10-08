@@ -82,8 +82,13 @@ ol.pasos { list-style: none; padding: 0; margin: 0; }
 @media (max-width: 900px) { .demo-deteccion { grid-template-columns: 1fr; } }
 .correo-ejemplo, .resultado { border-radius: 18px; padding: 24px; border: 1px solid var(--borde); }
 .correo-ejemplo { background: #f4f4f4; color: #151515; }
-.correo-cab { font-size: 14px; color: #444; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.correo-cab .punto { width: 30px; height: 30px; border-radius: 50%; background: #d9d9d9; }
+.correo-cab { font-size: 14px; color: #444; display: flex; align-items: center; gap: 12px; }
+.correo-cab b { color: #1b1b1b; }
+.correo-dir { color: #5f6368; overflow-wrap: anywhere; }
+.correo-para { color: #5f6368; font-size: 13px; }
+/* Así muestra Gmail a un remitente sin foto: círculo de color con la inicial */
+.avatar-correo { width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: #7b5ea7; color: #fff; font-size: 18px; font-weight: 500; font-family: Roboto, "Segoe UI", sans-serif; }
 .correo-asunto { font-weight: 700; font-size: 20px; margin: 14px 0 10px; }
 .correo-ejemplo p { margin: 0; color: #333; }
 .resultado { background: var(--superficie); }
