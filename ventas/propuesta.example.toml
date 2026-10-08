@@ -14,21 +14,21 @@ telefono = "+51 900 000 000"
 web = "https://tu-sitio.com"
 
 [precios]
-# Valores de EJEMPLO: defina los suyos después de investigar el mercado.
+# Precios publicados en la página de venta (lanzamiento, oct. 2026). Montos más IGV.
 moneda = "S/"
 igv_incluido = false                 # false = se indica "más IGV"
 validez_dias = 30
 permanencia_meses = 6                # duración mínima del servicio continuo
 
 [precios.diagnostico]
-pago_unico = 0                       # plan Diagnóstico
+pago_unico = 490                     # plan Diagnóstico (hasta 25 buzones)
 
 [precios.continua]
-instalacion = 0                      # pago único de implementación
-por_buzon_mes = 0                    # mensualidad por buzón vigilado
-minimo_mes = 0                       # mensualidad mínima
+instalacion = 350                    # pago único de implementación (0 con la promo de lanzamiento)
+por_buzon_mes = 12                   # mensualidad por buzón vigilado
+minimo_mes = 120                     # mensualidad mínima
 
 [precios.empresa]
-instalacion = 0
-por_buzon_mes = 0
-minimo_mes = 0
+instalacion = 1500                   # referencial: se cotiza según el caso
+por_buzon_mes = 9
+minimo_mes = 450

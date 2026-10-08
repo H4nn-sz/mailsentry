@@ -109,6 +109,14 @@ ol.pasos { list-style: none; padding: 0; margin: 0; }
 .plan-desc { margin-bottom: 18px !important; }
 .plan ul { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 9px; color: var(--texto-2); font-size: 15px; flex: 1; }
 .plan li::before { content: "✓"; color: var(--calor-brillo); margin-right: 10px; font-weight: 700; }
+.precio { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: -6px 0 18px; padding-bottom: 18px; border-bottom: 1px solid var(--borde); }
+.precio .monto { font-size: 40px; font-weight: 700; letter-spacing: -.03em; line-height: 1; color: #fff; }
+.precio .desde { font-size: 13px; color: var(--texto-3); width: 100%; margin-bottom: -2px; }
+.precio .periodo { font-size: 13.5px; color: var(--texto-2); }
+.promo { font-size: 13.5px; color: var(--texto-2); background: rgba(229, 103, 43, .1); border: 1px solid rgba(229, 103, 43, .35);
+  border-radius: 10px; padding: 9px 12px; margin: -6px 0 18px; }
+.promo b { color: var(--calor-brillo); }
+.promo s { color: var(--texto-3); }
 .plan.destacado { border-color: rgba(229, 103, 43, .5); background: linear-gradient(170deg, #1a120d, var(--superficie) 55%); }
 .cinta { position: absolute; top: -12px; left: 24px; background: var(--calor); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 
