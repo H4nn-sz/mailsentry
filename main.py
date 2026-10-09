@@ -272,8 +272,7 @@ def cmd_agregar_buzon(args) -> None:
     """Asistente en la terminal para conectar un buzón IMAP sin editar archivos."""
     from mailsentry.conexion_buzones import RE_EMAIL, ErrorConexion, guardar, probar, servidor_sugerido
 
-    print("Conectar un buzón a MailSentry (solo lectura: no marca, mueve ni borra correos)
-")
+    print("Conectar un buzón a MailSentry (solo lectura: no marca, mueve ni borra correos)\n")
     correo = input("Correo a vigilar: ").strip().lower()
     if not RE_EMAIL.match(correo):
         sys.exit("Correo inválido.")
@@ -281,11 +280,8 @@ def cmd_agregar_buzon(args) -> None:
     servidor = sugerido if sugerido.startswith("imap.") or sugerido.startswith("outlook.") else (
         input(f"Servidor IMAP [{sugerido}]: ").strip() or sugerido)
     if servidor == "imap.gmail.com":
-        print("
-Use una CONTRASEÑA DE APLICACIÓN de Google (16 letras), no su contraseña normal:
-"
-              "  https://myaccount.google.com/apppasswords  (requiere la verificación en 2 pasos)
-")
+        print("\nUse una CONTRASEÑA DE APLICACIÓN de Google (16 letras), no su contraseña normal:\n"
+              "  https://myaccount.google.com/apppasswords  (requiere la verificación en 2 pasos)\n")
     clave = getpass.getpass("Contraseña de aplicación (no se mostrará): ").replace(" ", "")
     print(f"Probando conexión con {servidor}...")
     try:
@@ -294,8 +290,7 @@ Use una CONTRASEÑA DE APLICACIÓN de Google (16 letras), no su contraseña norm
         sys.exit(str(error))
     configuracion.cargar()  # crea config.toml si no existe
     guardar(correo, clave, servidor)
-    print("Conexión correcta. Buzón guardado; MailSentry lo revisará cada vez que esté abierto.
-"
+    print("Conexión correcta. Buzón guardado; MailSentry lo revisará cada vez que esté abierto.\n"
           "La contraseña quedó guardada solo en el archivo .env de esta PC.")
 
 
