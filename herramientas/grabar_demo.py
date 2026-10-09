@@ -84,8 +84,27 @@ FINAL = """(logo) => {
 }"""
 
 
+LINEA_TIEMPO: list[tuple[float, str]] = []  # (segundo del video, texto) para el archivo .srt
+INICIO = [0.0]
+
+
 def subtitulo(pagina, texto: str = "") -> None:
     pagina.evaluate("t => window.__subtitulo && window.__subtitulo(t)", texto)
+    LINEA_TIEMPO.append((time.monotonic() - INICIO[0], re.sub(r"<[^>]+>", "", texto)))
+
+
+def escribir_srt(ruta: Path, duracion: float) -> None:
+    def marca(s: float) -> str:
+        ms = int(round(s * 1000))
+        return f"{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}"
+    bloques, n = [], 0
+    for i, (t, texto) in enumerate(LINEA_TIEMPO):
+        if not texto:
+            continue
+        fin = LINEA_TIEMPO[i + 1][0] if i + 1 < len(LINEA_TIEMPO) else duracion
+        n += 1
+        bloques.append(f"{n}\n{marca(t)} --> {marca(fin)}\n{texto}\n")
+    ruta.write_text("\n".join(bloques), encoding="utf-8")
 
 
 def mover(pagina, x: float, y: float, pasos: int = 25) -> None:
@@ -118,6 +137,7 @@ def grabar(carpeta_video: Path) -> Path:
                                          record_video_size={"width": ANCHO, "height": ALTO}, bypass_csp=True)
         contexto.add_init_script(EXTRAS)
         pg = contexto.new_page()
+        INICIO[0] = time.monotonic()  # el video empieza al abrir la página
 
         # 1. Ingreso
         pg.goto(f"{BASE}/ingresar")
@@ -210,10 +230,12 @@ def grabar(carpeta_video: Path) -> Path:
             pg.wait_for_timeout(280)
         pg.wait_for_timeout(1800)
 
-        # 8. Cierre
+        # 8. Cierre (texto solo para la locución; en pantalla se ve la tarjeta final)
         subtitulo(pg, "")
         pg.evaluate(FINAL, f"{BASE}/static/img/logo.svg")
+        LINEA_TIEMPO.append((time.monotonic() - INICIO[0], "MailSentry: protege el correo de tu empresa. Pide tu demo gratuita."))
         pg.wait_for_timeout(4500)
+        LINEA_TIEMPO.append((time.monotonic() - INICIO[0], ""))
 
         ruta_video = Path(pg.video.path())
         contexto.close()
@@ -242,7 +264,9 @@ def main() -> None:
                     "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-pix_fmt", "yuv420p",
                     "-movflags", "+faststart", str(SALIDA)], check=True)
     shutil.rmtree(temporal, ignore_errors=True)
-    print(f"Video: {SALIDA} ({SALIDA.stat().st_size // 1024} KB)")
+    srt = SALIDA.with_suffix(".srt")
+    escribir_srt(srt, LINEA_TIEMPO[-1][0] if LINEA_TIEMPO else 60)
+    print(f"Video: {SALIDA} ({SALIDA.stat().st_size // 1024} KB)\nSubtítulos: {srt}")
 
 
 if __name__ == "__main__":
