@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import secrets
 import shutil
 import tomllib
@@ -115,6 +116,22 @@ def _cargar_env(ruta: Path) -> None:
             os.environ.setdefault(clave.strip(), valor)
 
 
+def normalizar_url_bd(url: str) -> str:
+    """Acepta la URL tal como la copia Supabase/Neon/Postgres y la adapta al driver psycopg 3."""
+    url = url.strip()
+    for prefijo in ("postgres://", "postgresql://"):
+        if url.startswith(prefijo):
+            url = "postgresql+psycopg://" + url[len(prefijo):]
+    if url.startswith("postgresql+psycopg://") and "sslmode=" not in url:
+        url += ("&" if "?" in url else "?") + "sslmode=require"  # conexión cifrada obligatoria
+    return _url_sqlite(url)
+
+
+def describir_url_bd(url: str) -> str:
+    """URL sin la contraseña, para mostrarla en pantalla o en registros."""
+    return re.sub(r"://([^:/@]+):[^@]*@", r"://\1:****@", url)
+
+
 def _url_sqlite(url: str) -> str:
     """Convierte rutas SQLite relativas en absolutas respecto a la raíz del proyecto."""
     prefijo = "sqlite:///"
@@ -166,7 +183,8 @@ def cargar(ruta: Path | None = None) -> Config:
         host=srv.get("host", "127.0.0.1"),
         puerto=int(srv.get("puerto", 8050)),
         abrir_navegador=bool(srv.get("abrir_navegador", True)),
-        db_url=_url_sqlite(bd.get("url", "sqlite:///data/mailsentry.db")),
+        # La URL con contraseña (p. ej. Supabase) va en .env como MAILSENTRY_DB_URL, nunca en config.toml
+        db_url=normalizar_url_bd(os.environ.get("MAILSENTRY_DB_URL") or bd.get("url", "sqlite:///data/mailsentry.db")),
         guardar_original=bool(bd.get("guardar_original", True)),
         umbral_sospechoso=int(det.get("umbral_sospechoso", 35)),
         umbral_phishing=int(det.get("umbral_phishing", 65)),

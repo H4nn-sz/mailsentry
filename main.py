@@ -268,6 +268,37 @@ def cmd_actualizar_geoip(args) -> None:
           "Para ubicar los correos ya guardados ejecute:  python main.py reanalizar")
 
 
+def cmd_verificar_bd(args) -> None:
+    from mailsentry.migracion import verificar
+
+    config = configuracion.cargar()
+    try:
+        info = verificar(config.db_url)
+    except Exception as error:
+        sys.exit(f"No se pudo conectar a {configuracion.describir_url_bd(config.db_url)}:\n  {error}")
+    print(f"Conectado a {info['url']}\n  {info['version']} · latencia {info['latencia_ms']} ms")
+    for tabla, total in info["tablas"].items():
+        print(f"  {tabla:16} {total:>6} registros")
+
+
+def cmd_copiar_datos(args) -> None:
+    """Copia la base local (SQLite) a la configurada en MAILSENTRY_DB_URL (p. ej. Supabase)."""
+    from mailsentry.migracion import copiar
+
+    config = configuracion.cargar()
+    origen = _url_sqlite("sqlite:///data/demo.db" if args.demo else "sqlite:///data/mailsentry.db")
+    if config.db_url.startswith("sqlite"):
+        sys.exit("Defina primero MAILSENTRY_DB_URL en el archivo .env con la conexión de Supabase.")
+    if not Path(origen.removeprefix("sqlite:///")).exists():
+        sys.exit(f"No existe la base de origen {origen}")
+    print(f"Copiando {origen}\n     → {configuracion.describir_url_bd(config.db_url)}")
+    try:
+        copiados = copiar(origen, config.db_url, forzar=args.forzar)
+    except RuntimeError as error:
+        sys.exit(str(error))
+    print(f"Listo: {sum(copiados.values())} registros copiados.")
+
+
 def cmd_simular(args) -> None:
     """Mide la detección sobre una empresa ficticia (no toca sus datos reales)."""
     import tempfile
@@ -332,6 +363,14 @@ def main() -> None:
 
     p = sub.add_parser("actualizar-geoip", help="descarga la base de países por IP (rastreo del origen)")
     p.set_defaults(func=cmd_actualizar_geoip)
+
+    p = sub.add_parser("verificar-bd", help="prueba la conexión con la base de datos (p. ej. Supabase)")
+    p.set_defaults(func=cmd_verificar_bd)
+
+    p = sub.add_parser("copiar-datos", help="copia la base local SQLite a la de MAILSENTRY_DB_URL")
+    p.add_argument("--demo", action="store_true", help="copiar la base de demostración")
+    p.add_argument("--forzar", action="store_true", help="vaciar el destino si ya tiene datos")
+    p.set_defaults(func=cmd_copiar_datos)
 
     p = sub.add_parser("simular", help="mide la detección sobre una empresa ficticia")
     p.add_argument("--dias", type=int, default=90)

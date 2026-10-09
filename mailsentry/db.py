@@ -205,6 +205,11 @@ def inicializar(url: str) -> None:
     argumentos = {}
     if url.startswith("sqlite"):
         argumentos["connect_args"] = {"check_same_thread": False, "timeout": 30}
+    else:
+        # Postgres en la nube (Supabase): conexiones que se reciclan y se verifican antes de usarse.
+        # prepare_threshold=None: compatible con el pooler de Supabase en modo transacción (puerto 6543).
+        argumentos.update(pool_pre_ping=True, pool_recycle=300, pool_size=5, max_overflow=5,
+                          connect_args={"prepare_threshold": None, "connect_timeout": 15})
     _motor = create_engine(url, future=True, **argumentos)
     if url.startswith("sqlite"):
 
