@@ -54,6 +54,13 @@ class TestWeb(unittest.TestCase):
         r = c.post("/bienvenida?paso=1", data={"_csrf": token, "empresa": "Prueba S.A.C.",
                                                "dominios": casos.D, "ciudad": "Arequipa"})
         self.assertIn("paso=2", r.headers["Location"])
+        # Un dominio gratuito (gmail.com) nunca debe quedar como "propio": haría parecer interno a todo Gmail
+        c.post("/bienvenida?paso=1", data={"_csrf": token, "empresa": "Prueba S.A.C.",
+                                           "dominios": f"{casos.D}\ngmail.com", "ciudad": "Arequipa"})
+        from mailsentry.db import ReglaLista
+        with db.sesion() as s:
+            propios = {r.valor for r in s.query(ReglaLista).filter_by(tipo="propio")}
+        self.assertEqual(propios, {casos.D})
         c.post("/bienvenida?paso=2", data={"_csrf": token, "nombre": "", "email": "", "cargo": ""})
         c.post("/bienvenida?paso=3", data={"_csrf": token})
         self.assertNotIn("Falta la configuración inicial", c.get("/").get_data(as_text=True))

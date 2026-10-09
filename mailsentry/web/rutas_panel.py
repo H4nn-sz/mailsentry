@@ -79,9 +79,16 @@ def bienvenida():
                 nombre = request.form.get("empresa", "").strip()[:150]
                 dominios = {d.strip().lower().removeprefix("@") for d in request.form.get("dominios", "").replace(",", "\n").splitlines()}
                 dominios = {d for d in dominios if "." in d and " " not in d}
-                if not nombre or not dominios:
-                    flash("Ingrese el nombre de la empresa y al menos un dominio de correo (ej. miempresa.com.pe).", "error")
+                # Un dominio gratuito (gmail.com, outlook.com...) como "propio" haría que todo Gmail pareciera interno
+                gratuitos = sorted(d for d in dominios if d in CORREO_GRATUITO)
+                dominios -= set(gratuitos)
+                if not nombre:
+                    flash("Ingrese el nombre de la empresa (o su nombre, si es una cuenta personal).", "error")
                     return redirect(url_for("panel.bienvenida", paso=1))
+                if gratuitos:
+                    flash(f"No se registró {', '.join(gratuitos)}: es un correo gratuito y lo usan millones de personas. "
+                          "Solo registre dominios propios de su empresa. Si usa un Gmail personal, deje el campo vacío.",
+                          "alerta")
                 db.guardar_ajuste(s, "empresa_nombre", nombre)
                 ciudad = request.form.get("ciudad", "Lima")
                 db.guardar_ajuste(s, "ciudad", ciudad)

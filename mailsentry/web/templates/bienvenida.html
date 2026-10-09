@@ -22,8 +22,8 @@
     <div class="campo"><label for="empresa">Nombre de la empresa</label>
       <input id="empresa" type="text" name="empresa" required value="{{ ajustes.get('empresa_nombre', '') }}" placeholder="Comercial Ejemplo S.A.C."></div>
     <div class="campo"><label for="dominios">Dominios de correo de la empresa (uno por línea)</label>
-      <textarea id="dominios" name="dominios" style="min-height:80px" required placeholder="miempresa.com.pe">{{ dominios | join('\n') }}</textarea>
-      <small class="muted">Lo que va después de la @ en sus correos. MailSentry los protegerá contra suplantación e imitaciones.</small></div>
+      <textarea id="dominios" name="dominios" style="min-height:80px" placeholder="miempresa.com.pe">{{ dominios | join('\n') }}</textarea>
+      <small class="muted">Lo que va después de la @ en sus correos (ej. miempresa.com.pe). MailSentry los protegerá contra suplantación e imitaciones. Si usa un Gmail o Outlook personal, déjelo vacío.</small></div>
     <div class="campo"><label for="ciudad">Ciudad</label>
       <select id="ciudad" name="ciudad">{% for c in ciudades %}<option {{ 'selected' if c == ajustes.get('ciudad', 'Lima') }}>{{ c }}</option>{% endfor %}</select>
       <small class="muted">Se usa como destino de los ataques en el globo del panel.</small></div>
