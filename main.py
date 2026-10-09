@@ -316,6 +316,10 @@ def cmd_simular(args) -> None:
 
 
 def main() -> None:
+    # Algunas consolas de Windows no usan UTF-8 y fallan al imprimir tildes o flechas
+    for flujo in (sys.stdout, sys.stderr):
+        if hasattr(flujo, "reconfigure"):
+            flujo.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(prog="mailsentry", description="MailSentry · detector de phishing para empresas")
     parser.add_argument("--version", action="version", version=f"MailSentry {__version__}")
     sub = parser.add_subparsers(dest="comando", required=True, metavar="comando")
