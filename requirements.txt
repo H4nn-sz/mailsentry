@@ -4,6 +4,8 @@ waitress>=3.0
 tzdata>=2024.1
 # Driver de PostgreSQL (Supabase, Neon o un servidor propio)
 psycopg[binary]>=3.2
+# Importar la lista de personal desde Excel
+openpyxl>=3.1
 # Opcional: capa de inteligencia artificial (aprende de las correcciones del analista).
 # Si no se instala, MailSentry funciona solo con el motor heurístico.
 scikit-learn>=1.5

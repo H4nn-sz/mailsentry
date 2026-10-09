@@ -11,7 +11,8 @@
 </div>
 
 {% if tiene_rol('analista') %}
-<form class="tarjeta plana filtros" method="post" style="margin-bottom:16px">
+{% with abierto = not empleados %}{% include "_importar_personal.html" %}{% endwith %}
+<form class="tarjeta plana filtros mt" method="post" style="margin-bottom:16px">
   {{ csrf_input() }}
   <input type="email" name="email" placeholder="correo@empresa.com" required aria-label="Correo" style="flex:1 1 200px">
   <input type="text" name="nombre" placeholder="Nombre y apellido" aria-label="Nombre" style="flex:1 1 180px">

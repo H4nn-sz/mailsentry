@@ -1,0 +1,18 @@
+{# Importación masiva de personal. Variable opcional: volver = "bienvenida" #}
+<details class="tarjeta importar" {{ 'open' if abierto }}>
+  <summary><b>¿Muchas personas? Impórtelas desde Excel</b> <span class="muted">· todo el personal de una vez</span></summary>
+  <form method="post" action="{{ url_for('panel.importar_personal') }}" enctype="multipart/form-data" style="margin-top:14px">
+    <input type="hidden" name="_csrf" value="{{ csrf() }}">
+    {% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}
+    <p class="sec">Columnas: <b>nombre</b>, <b>correo</b>, <b>cargo</b>, <b>área</b> y <b>directivo</b> (sí / no).
+      Solo el correo es obligatorio. <a href="{{ url_for('panel.plantilla_personal') }}">Descargar plantilla</a></p>
+    <div class="grid g-2">
+      <div class="campo"><label for="imp-archivo">Archivo Excel (.xlsx) o CSV</label>
+        <input id="imp-archivo" type="file" name="archivo" accept=".xlsx,.xlsm,.csv,.txt"></div>
+      <div class="campo"><label for="imp-texto">… o copie las filas en Excel y péguelas aquí</label>
+        <textarea id="imp-texto" name="texto" style="min-height:90px" placeholder="Ana Torres	ana.torres@miempresa.com.pe	Gerente General	Gerencia	sí"></textarea></div>
+    </div>
+    <button class="btn btn-primario" type="submit">Importar personal</button>
+    <span class="muted" style="margin-left:8px;font-size:12.5px">Si un correo ya existe, se actualizan sus datos.</span>
+  </form>
+</details>

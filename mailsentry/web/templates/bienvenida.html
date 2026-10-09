@@ -31,7 +31,9 @@
   </form>
 
   {% elif paso == 2 %}
-  <form class="tarjeta" method="post" action="{{ url_for('panel.bienvenida', paso=2) }}">
+  {% with volver = 'bienvenida', abierto = true %}{% include "_importar_personal.html" %}{% endwith %}
+  {% if directivos | length > 5 %}<p class="sec" style="margin:14px 0 0">Hay {{ directivos | length }} directivos registrados. Abajo se muestran los primeros 5; el resto está en <b>Personal</b>.</p>{% endif %}
+  <form class="tarjeta mt" method="post" action="{{ url_for('panel.bienvenida', paso=2) }}">
     {{ csrf_input() }}
     <p class="sec">Los atacantes se hacen pasar por gerentes y jefes para pedir transferencias urgentes (fraude del CEO).
       Registre a las personas que suelen ser suplantadas, con el nombre tal como firman sus correos.</p>

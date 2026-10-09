@@ -319,6 +319,13 @@ pre.cuerpo { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--f
 details summary { list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 
+/* ---------- importación de personal ---------- */
+.importar summary { cursor: pointer; list-style: none; }
+.importar summary::-webkit-details-marker { display: none; }
+.importar summary::before { content: "＋ "; color: var(--calor-brillo); font-weight: 700; }
+.importar[open] summary::before { content: "－ "; }
+.importar input[type=file] { width: 100%; padding: 10px; border: 1px dashed var(--borde-fuerte); border-radius: 9px; background: var(--superficie-2); }
+
 /* ---------- asistente de bienvenida ---------- */
 .asistente { max-width: 760px; margin: 0 auto; }
 .pasos { list-style: none; display: flex; gap: 8px; padding: 0; margin: 0 0 18px; }

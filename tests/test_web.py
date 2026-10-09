@@ -61,6 +61,12 @@ class TestWeb(unittest.TestCase):
         with db.sesion() as s:
             propios = {r.valor for r in s.query(ReglaLista).filter_by(tipo="propio")}
         self.assertEqual(propios, {casos.D})
+        # Importación masiva desde el asistente (texto pegado de Excel)
+        r = c.post("/personal/importar", data={"_csrf": token, "volver": "bienvenida",
+                                               "texto": f"Carlos Mendoza\tcarlos.mendoza@{casos.D}\tGerente General\tGerencia\tsí\n"
+                                                        f"Rosa Quispe\trosa.quispe@{casos.D}\tCoordinadora\tLogística\tno"})
+        self.assertIn("paso=2", r.headers["Location"])
+        self.assertIn("1 directivo", c.get("/bienvenida?paso=2").get_data(as_text=True))
         c.post("/bienvenida?paso=2", data={"_csrf": token, "nombre": "", "email": "", "cargo": ""})
         c.post("/bienvenida?paso=3", data={"_csrf": token})
         self.assertNotIn("Falta la configuración inicial", c.get("/").get_data(as_text=True))
@@ -69,7 +75,7 @@ class TestWeb(unittest.TestCase):
         # 2. Instalación nueva: panel vacío y aviso de registrar directivos
         inicio = c.get("/").get_data(as_text=True)
         self.assertIn("Aún no hay correos", inicio)
-        self.assertIn("Registre a sus directivos", inicio)
+        self.assertNotIn("Registre a sus directivos", inicio)  # el asistente ya importó a un directivo
 
         # 3. Llega un correo interno auténtico: MailSentry aprende "Carlos Mendoza <carlos.mendoza@...>"
         interno = casos.eml(f"Carlos Mendoza <carlos.mendoza@{casos.D}>", f"lucia.paredes@{casos.D}",
@@ -82,7 +88,8 @@ class TestWeb(unittest.TestCase):
         r = c.post("/analizar", data={"_csrf": token, "fuente": casos.ATAQUES[0][1].decode("utf-8")})
         self.assertEqual(r.status_code, 302)
         detalle = c.get(r.headers["Location"]).get_data(as_text=True)
-        self.assertIn("Usa el nombre de un empleado", detalle)
+        # Carlos fue importado como directivo en el asistente: se detecta como suplantación de directivo
+        self.assertIn("Usa el nombre de un directivo", detalle)
         self.assertNotIn("Legítimo</span> <span", detalle)
 
         # 3. Panel, listado, exportación y reporte con datos

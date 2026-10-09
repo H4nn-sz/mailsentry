@@ -376,6 +376,56 @@ def guardar_empleado():
     return redirect(url_for("panel.personal"))
 
 
+@bp.get("/personal/plantilla.csv")
+@requiere_rol("lector")
+def plantilla_personal():
+    from ..importar import PLANTILLA
+
+    return Response("﻿" + PLANTILLA, mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=plantilla-personal-mailsentry.csv"})
+
+
+@bp.post("/personal/importar")
+@requiere_rol("analista")
+def importar_personal():
+    from ..importar import leer
+
+    volver = url_for("panel.bienvenida", paso=2) if request.form.get("volver") == "bienvenida" else url_for("panel.personal")
+    archivo = request.files.get("archivo")
+    if archivo and archivo.filename:
+        resultado = leer(archivo.filename, archivo.read())
+    else:
+        resultado = leer(texto=request.form.get("texto", ""))
+    if not resultado.personas:
+        flash("No se encontró ninguna persona con correo válido. Use la plantilla: nombre, correo, cargo, área, directivo.",
+              "error")
+        return redirect(volver)
+    nuevos = actualizados = 0
+    with db.sesion() as s:
+        for p in resultado.personas:
+            e = s.scalar(select(Empleado).where(Empleado.email == p.email))
+            if e is None:
+                e = Empleado(email=p.email)
+                s.add(e)
+                nuevos += 1
+            else:
+                actualizados += 1
+            e.nombre = p.nombre or e.nombre
+            e.cargo = p.cargo or e.cargo
+            e.departamento = p.departamento or (e.departamento if e.departamento else "Sin asignar")
+            e.es_vip = p.es_vip or e.es_vip
+        registrar_evento(s, _usuario(), "personal_importado", f"{nuevos} nuevos, {actualizados} actualizados")
+        s.commit()
+    directivos = sum(1 for p in resultado.personas if p.es_vip)
+    mensaje = (f"Importación lista: {nuevos} persona(s) nueva(s), {actualizados} actualizada(s), "
+               f"{directivos} directivo(s).")
+    if resultado.omitidas:
+        mensaje += f" Se omitieron {len(resultado.omitidas)}: " + "; ".join(resultado.omitidas[:3])
+        mensaje += "…" if len(resultado.omitidas) > 3 else ""
+    flash(mensaje, "alerta" if resultado.omitidas else "ok")
+    return redirect(volver)
+
+
 @bp.post("/personal/<int:empleado_id>/eliminar")
 @requiere_rol("analista")
 def eliminar_empleado(empleado_id: int):
