@@ -8,7 +8,7 @@ from functools import lru_cache
 from ..parser import CorreoParseado
 from ..util import normalizar
 from .contexto import Contexto
-from .datos import GRUPOS_FRASES
+from .datos import GRUPOS_FRASES, MARCAS
 from .dominios import dominio_de_marca, host_de_url, marcas_en_texto
 from .modelos import Indicador
 
@@ -44,11 +44,15 @@ def analizar(correo: CorreoParseado, ctx: Contexto) -> list[Indicador]:
                              grupo["severidad"], dict(grupo["categorias"])))
 
     # Marca mencionada en asunto/cuerpo con enlaces que no son de esa marca
+    asunto_n = normalizar(correo.asunto)
     marcas = marcas_en_texto(normalizar(correo.asunto + " " + correo.cuerpo[:3000]))
     hosts = {host_de_url(e.url) for e in correo.enlaces if e.url.lower().startswith("http")}
     hosts.discard("")
     for marca in marcas:
         if dominio_de_marca(correo.remitente_dominio, marca):
+            continue
+        # Redes sociales: se nombran en el pie de casi todo correo comercial; solo cuentan si están en el asunto
+        if MARCAS[marca].get("social") and marca not in marcas_en_texto(asunto_n):
             continue
         ajenos = [h for h in hosts if not dominio_de_marca(h, marca) and not ctx.es_propio(h)]
         ind.append(Indicador("MARCA_MENCIONADA", f"Menciona a {marca}",

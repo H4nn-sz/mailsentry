@@ -83,7 +83,7 @@ MARCAS: dict[str, dict] = {
     "Banco de la Nación": {"patrones": ["banco de la nacion"], "dominios": ["bn.com.pe"]},
     "Mibanco": {"patrones": ["mibanco"], "dominios": ["mibanco.com.pe"]},
     "BanBif": {"patrones": ["banbif"], "dominios": ["banbif.com.pe"]},
-    "Yape": {"patrones": ["yape"], "dominios": ["yape.com.pe", "viabcp.com"]},
+    "Yape": {"patrones": ["yape"], "dominios": ["yape.pe", "yape.com.pe", "viabcp.com"]},  # yape.pe confirmado en correo real (DMARC pass)
     "Plin": {"patrones": ["plin"], "dominios": ["interbank.pe", "bbva.pe", "scotiabank.com.pe"], "solo_remitente": True},
     "SUNAT": {"patrones": ["sunat", "superintendencia nacional de aduanas"], "dominios": ["sunat.gob.pe"]},
     "SUNARP": {"patrones": ["sunarp"], "dominios": ["sunarp.gob.pe"]},
@@ -107,9 +107,10 @@ MARCAS: dict[str, dict] = {
     "Netflix": {"patrones": ["netflix"], "dominios": ["netflix.com"]},
     "Mercado Libre": {"patrones": ["mercado libre", "mercadolibre", "mercado pago", "mercadopago"],
                       "dominios": ["mercadolibre.com.pe", "mercadolibre.com", "mercadopago.com", "mercadopago.com.pe"]},
-    "Meta / Facebook": {"patrones": ["facebook", "meta business", "instagram", "whatsapp"],
+    # "social": casi todo correo comercial las nombra en el pie ("síguenos en Facebook"); solo cuentan en el asunto
+    "Meta / Facebook": {"patrones": ["facebook", "meta business", "instagram", "whatsapp"], "social": True,
                         "dominios": ["facebook.com", "facebookmail.com", "meta.com", "instagram.com", "whatsapp.com"]},
-    "LinkedIn": {"patrones": ["linkedin"], "dominios": ["linkedin.com", "licdn.com"]},
+    "LinkedIn": {"patrones": ["linkedin"], "dominios": ["linkedin.com", "licdn.com"], "social": True},
     "DocuSign": {"patrones": ["docusign"], "dominios": ["docusign.com", "docusign.net"]},
     "Adobe": {"patrones": ["adobe sign", "adobe acrobat", "adobe document cloud"], "dominios": ["adobe.com", "adobesign.com"]},
     "Dropbox": {"patrones": ["dropbox"], "dominios": ["dropbox.com", "dropboxmail.com"]},

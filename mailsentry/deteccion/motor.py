@@ -23,6 +23,9 @@ ENLACES_RIESGOSOS = {
     "URL_IP", "URL_PUNYCODE", "URL_ARROBA", "URL_HOSTING_GRATUITO", "URL_ACORTADA", "URL_TLD", "URL_DATOS",
     "FORMULARIO_EXTERNO",
 }
+# Señales de enlace que por sí solas son comunes en publicidad legítima (acortadores, extensiones baratas):
+# cuentan para el puntaje, pero no bastan para activar los combos de credenciales o marca.
+ENLACES_FUERTES = ENLACES_RIESGOSOS - {"URL_ACORTADA", "URL_TLD"}
 SUPLANTACION_MARCA = {"MARCA_EN_NOMBRE", "DOMINIO_SIMILAR_MARCA", "URL_SIMILAR_MARCA", "URL_MARCA_FUERA_DE_DOMINIO"}
 ADJUNTOS_PELIGROSOS = {
     "ADJ_EJECUTABLE", "ADJ_EJECUTABLE_OCULTO", "ADJ_DOBLE_EXTENSION", "ADJ_ZIP_CIFRADO", "ADJ_ZIP_PELIGROSO",
@@ -44,7 +47,7 @@ def _sinergias(ind: list[Indicador]) -> list[Indicador]:
         extra.append(Indicador("COMBO_QR", "Código QR para iniciar sesión o reactivar la cuenta",
                                "El enlace va dentro de una imagen QR para que el celular lo abra fuera de los "
                                "filtros de la empresa (quishing).", 15, "alta", {"credenciales": 1.0}))
-    if "KW_CREDENCIALES" in codigos and codigos & ENLACES_RIESGOSOS:
+    if "KW_CREDENCIALES" in codigos and codigos & ENLACES_FUERTES:
         extra.append(Indicador("COMBO_CREDENCIALES", "Pide credenciales y enlaza a un sitio riesgoso",
                                "Solicita iniciar sesión o confirmar datos mediante un enlace de destino sospechoso.",
                                15, "alta", {"credenciales": 1.0}))
@@ -52,7 +55,7 @@ def _sinergias(ind: list[Indicador]) -> list[Indicador]:
     # Solo si la marca es el pretexto (enlaces dudosos) y no se está suplantando a alguien de la empresa:
     # "compra tarjetas de Google Play" en un fraude del CEO no es suplantar a Google.
     if (menciona and not codigos & SUPLANTACION_MARCA and not codigos & SUPLANTACION_INTERNA
-            and codigos & {"KW_CREDENCIALES", "KW_URGENCIA"} and codigos & ENLACES_RIESGOSOS):
+            and codigos & {"KW_CREDENCIALES", "KW_URGENCIA"} and codigos & ENLACES_FUERTES):
         extra.append(Indicador("COMBO_MARCA", f"Usa el nombre de {menciona.marca} para presionar",
                                f"Menciona a {menciona.marca}, presiona o pide datos, y los enlaces o la autenticación "
                                "no corresponden a esa marca.", 20, "alta",

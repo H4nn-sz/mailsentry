@@ -14,6 +14,7 @@ from .dominios import (
     buscar_parecido,
     desenvolver,
     dominio_de_alguna_marca,
+    dominio_de_marca,
     dominio_registrable,
     es_ip,
     es_redirector_legitimo,
@@ -67,6 +68,7 @@ def analizar(correo: CorreoParseado, ctx: Contexto) -> list[Indicador]:
     marcas: dict[str, str] = {}
     auth = correo.autenticacion
     auth_falla = auth.get("dmarc") == "fail" or auth.get("spf") in ("fail", "softfail")
+    remitente_autentico = auth.get("dmarc") == "pass" or (auth.get("spf") == "pass" and auth.get("dkim") == "pass")
 
     def marcar(codigo: str, evidencia: str, marca: str | None = None) -> None:
         lista = hallazgos.setdefault(codigo, [])
@@ -155,7 +157,8 @@ def analizar(correo: CorreoParseado, ctx: Contexto) -> list[Indicador]:
                     marcar("URL_SIMILAR_MARCA", f"{desarmar_url(host)} imita a {marca[1]}: {marca[2]}", marca[0])
                 else:
                     en_ruta = marca_en_subdominio_o_ruta(url)
-                    if en_ruta:
+                    # La propia marca, autenticada, enlazando a sus proveedores (yape.qualtrics.com) no es imitación
+                    if en_ruta and not (remitente_autentico and dominio_de_marca(correo.remitente_dominio, en_ruta)):
                         marcar("URL_MARCA_FUERA_DE_DOMINIO", f"«{en_ruta}» en {visible}", en_ruta)
 
     indicadores = []

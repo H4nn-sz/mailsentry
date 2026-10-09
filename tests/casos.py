@@ -113,6 +113,20 @@ LEGITIMOS = [
         "Buenos d=EDas, solicitamos cotizaci=F3n de 500 metros de tela.\n", "text/plain; charset=iso-8859-1",
         "quoted-printable")),
     ("Correo malformado", b"Esto no es un correo\x00\xff\xfe valido\n\nsin cabeceras"),
+    # Falsos positivos encontrados en la primera prueba con un buzón real (oct. 2026), recreados sin datos reales
+    ("Notificación real de Yape (yape.pe)", eml(
+        "YAPE Notificaciones <notificaciones@yape.pe>", f"cliente@{D}", "Pago exitoso",
+        '<p>Hola, tu pago fue exitoso. Por tu seguridad, te notificaremos por cada yapeo que realices. '
+        'Si no reconoces esta operación, ingresa a la app.</p><a href="https://www.yape.pe/ayuda">Ayuda</a>', HTML)),
+    ("Encuesta real de Yape vía Qualtrics", eml(
+        "Yape <encuestas@postventa.yape.com.pe>", f"cliente@{D}", "¡Participa y gana un yapeo de S/40!",
+        '<p>Responde nuestra encuesta y participa en el sorteo.</p>'
+        '<a href="https://yape.qualtrics.com/jfe/form/SV_abc123">Responder encuesta</a>', HTML)),
+    ("Publicidad con pie de redes sociales y enlace acortado", eml(
+        "Tienda Ejemplo <info@tiendaejemplo.pe>", f"cliente@{D}", "¡Llévate tu bono por tu primera compra!",
+        '<p>Aprovecha el bono de bienvenida: <a href="https://cutt.ly/AbC123">compra aquí</a>.</p>'
+        '<p>Síguenos en Facebook e Instagram. Si deseas actualizar sus datos o dejar de recibir correos, '
+        '<a href="https://tiendaejemplo.pe/preferencias">haz clic aquí</a>.</p>', HTML)),
 ]
 
 # Legítimo, pero debe ir a revisión (no a "legítimo" ni a "phishing"): política de verificación.
