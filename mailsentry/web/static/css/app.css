@@ -319,6 +319,13 @@ pre.cuerpo { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--f
 details summary { list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 
+/* ---------- conectar buzón ---------- */
+.conectar { border-color: rgba(229, 103, 43, .35); }
+.pasos-gmail { margin: 0; padding-left: 20px; color: var(--texto-2); display: grid; gap: 10px; font-size: 14px; }
+.pasos-gmail a { color: var(--calor-brillo); }
+.avanzado { margin-bottom: 14px; }
+.avanzado summary { cursor: pointer; font-size: 13px; }
+
 /* ---------- importación de personal ---------- */
 .importar summary { cursor: pointer; list-style: none; }
 .importar summary::-webkit-details-marker { display: none; }

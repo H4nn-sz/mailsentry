@@ -268,55 +268,35 @@ def cmd_actualizar_geoip(args) -> None:
           "Para ubicar los correos ya guardados ejecute:  python main.py reanalizar")
 
 
-SERVIDORES_IMAP = {
-    "gmail.com": "imap.gmail.com", "googlemail.com": "imap.gmail.com",
-    "outlook.com": "outlook.office365.com", "hotmail.com": "outlook.office365.com", "live.com": "outlook.office365.com",
-    "yahoo.com": "imap.mail.yahoo.com", "icloud.com": "imap.mail.me.com", "zoho.com": "imap.zoho.com",
-}
-
-
 def cmd_agregar_buzon(args) -> None:
     """Asistente en la terminal para conectar un buzón IMAP sin editar archivos."""
-    import imaplib
-    import re as _re
-    import ssl
+    from mailsentry.conexion_buzones import RE_EMAIL, ErrorConexion, guardar, probar, servidor_sugerido
 
-    from mailsentry.config import RAIZ, RUTA_CONFIG
-
-    print("Conectar un buzón a MailSentry (solo lectura: no marca, mueve ni borra correos)\n")
-    usuario = input("Correo a vigilar: ").strip().lower()
-    if "@" not in usuario:
+    print("Conectar un buzón a MailSentry (solo lectura: no marca, mueve ni borra correos)
+")
+    correo = input("Correo a vigilar: ").strip().lower()
+    if not RE_EMAIL.match(correo):
         sys.exit("Correo inválido.")
-    dominio = usuario.split("@", 1)[1]
-    servidor = SERVIDORES_IMAP.get(dominio) or input(f"Servidor IMAP (ej. mail.{dominio}): ").strip() or f"mail.{dominio}"
-    if dominio in ("gmail.com", "googlemail.com"):
-        print("\nUse una CONTRASEÑA DE APLICACIÓN de Google (16 letras), no su contraseña normal:\n"
-              "  https://myaccount.google.com/apppasswords  (requiere la verificación en 2 pasos)\n")
+    sugerido = servidor_sugerido(correo)
+    servidor = sugerido if sugerido.startswith("imap.") or sugerido.startswith("outlook.") else (
+        input(f"Servidor IMAP [{sugerido}]: ").strip() or sugerido)
+    if servidor == "imap.gmail.com":
+        print("
+Use una CONTRASEÑA DE APLICACIÓN de Google (16 letras), no su contraseña normal:
+"
+              "  https://myaccount.google.com/apppasswords  (requiere la verificación en 2 pasos)
+")
     clave = getpass.getpass("Contraseña de aplicación (no se mostrará): ").replace(" ", "")
     print(f"Probando conexión con {servidor}...")
     try:
-        with imaplib.IMAP4_SSL(servidor, 993, ssl_context=ssl.create_default_context(), timeout=30) as m:
-            m.login(usuario, clave)
-            m.select("INBOX", readonly=True)
-    except Exception as error:
-        sys.exit(f"No se pudo conectar: {error}\nRevise el correo, la contraseña de aplicación y el servidor.")
-    print("Conexión correcta.")
-
-    variable = "MAILSENTRY_PASS_" + _re.sub(r"[^A-Z0-9]+", "_", usuario.upper()).strip("_")
-    env = RAIZ / ".env"
-    lineas = env.read_text(encoding="utf-8").splitlines() if env.exists() else []
-    lineas = [l for l in lineas if not l.startswith(variable + "=")] + [f"{variable}={clave}"]
-    env.write_text("\n".join(lineas) + "\n", encoding="utf-8")
+        probar(correo, clave, servidor)
+    except ErrorConexion as error:
+        sys.exit(str(error))
     configuracion.cargar()  # crea config.toml si no existe
-    texto = RUTA_CONFIG.read_text(encoding="utf-8")
-    if f'usuario = "{usuario}"' in texto:
-        print("Ese buzón ya estaba en config.toml; se actualizó la contraseña.")
-    else:
-        texto += (f'\n[[buzones]]\nnombre = "{usuario}"\nconexion = "imap"\nservidor = "{servidor}"\npuerto = 993\n'
-                  f'usuario = "{usuario}"\npassword_env = "{variable}"\ncarpeta = "INBOX"\ncuarentena = ""\ntipo = "entrada"\n')
-        RUTA_CONFIG.write_text(texto, encoding="utf-8")
-        print("Buzón agregado. MailSentry lo revisará automáticamente cada vez que esté abierto.")
-    print("La contraseña quedó guardada solo en el archivo .env de esta PC.")
+    guardar(correo, clave, servidor)
+    print("Conexión correcta. Buzón guardado; MailSentry lo revisará cada vez que esté abierto.
+"
+          "La contraseña quedó guardada solo en el archivo .env de esta PC.")
 
 
 def cmd_verificar_bd(args) -> None:

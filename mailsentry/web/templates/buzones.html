@@ -12,7 +12,37 @@
   {% endif %}
 </div>
 
-<section class="tarjeta">
+{% if tiene_rol('admin') %}
+<section class="tarjeta conectar">
+  <header><div><div class="etiqueta-hud">Conectar correo</div><h2>Conecte su Gmail u otro correo</h2>
+    <p>Solo lectura: MailSentry no marca correos como leídos, no los mueve ni los borra.</p></div></header>
+  <div class="grid g-2">
+    <form method="post" action="{{ url_for('panel.conectar_buzon') }}" autocomplete="off">
+      {{ csrf_input() }}
+      <div class="campo"><label for="b-correo">Correo a vigilar</label>
+        <input id="b-correo" type="email" name="correo" required placeholder="usted@gmail.com"></div>
+      <div class="campo"><label for="b-clave">Contraseña de aplicación</label>
+        <input id="b-clave" type="password" name="clave" required placeholder="16 letras" autocomplete="new-password"></div>
+      <details class="avanzado"><summary class="muted">Opciones avanzadas (correo de hosting)</summary>
+        <div class="campo" style="margin-top:10px"><label for="b-servidor">Servidor IMAP</label>
+          <input id="b-servidor" type="text" name="servidor" placeholder="Se detecta solo · ej. mail.miempresa.com.pe"></div>
+      </details>
+      <button class="btn btn-primario" type="submit">Probar y conectar</button>
+    </form>
+    <ol class="pasos-gmail">
+      <li><b>Active la verificación en dos pasos</b> de su cuenta de Google:
+        <a href="https://myaccount.google.com/signinoptions/twosv" target="_blank" rel="noopener">abrir ↗</a></li>
+      <li><b>Cree una contraseña de aplicación</b> con el nombre «MailSentry»:
+        <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">abrir ↗</a></li>
+      <li>Google le mostrará <b>16 letras</b>. Cópielas y péguelas aquí al lado.</li>
+      <li>Pulse <b>Probar y conectar</b>. En unos minutos verá sus correos analizados en el panel.</li>
+    </ol>
+  </div>
+  <p class="muted" style="margin:12px 0 0;font-size:12.5px">La contraseña se guarda solo en esta PC (archivo <code>.env</code>) y puede revocarla cuando quiera en la misma página de Google. Para correos de hosting (cPanel) use la contraseña normal del buzón y el servidor <code>mail.sudominio.com</code>.</p>
+</section>
+{% endif %}
+
+<section class="tarjeta mt">
   {% if buzones %}
   <div class="tabla-env"><table>
     <thead><tr><th>Buzón</th><th>Cuenta</th><th>Conexión</th><th>Tipo</th><th>Última revisión</th><th class="num">Procesados</th><th>Estado</th></tr></thead>
@@ -41,21 +71,7 @@
   {% endif %}
 </section>
 
-<div class="grid g-2 mt">
-  <section class="tarjeta">
-    <h3>Gmail, Google Workspace y hosting (IMAP)</h3>
-    <p class="sec">Agregue en <code>config.toml</code>:</p>
-<pre class="cuerpo mono">[[buzones]]
-nombre = "Gerencia"
-conexion = "imap"
-servidor = "imap.gmail.com"
-usuario = "gerencia@suempresa.com.pe"
-password_env = "MAILSENTRY_PASS_GERENCIA"</pre>
-    <p class="sec" style="margin-top:10px">Y en el archivo <code>.env</code> la contraseña de aplicación:
-      <code>MAILSENTRY_PASS_GERENCIA=xxxx xxxx xxxx xxxx</code>. En Gmail se crea en
-      <i>Cuenta de Google → Seguridad → Contraseñas de aplicaciones</i> (requiere verificación en 2 pasos).
-      Hostings con cPanel usan <code>mail.sudominio.com</code> y la contraseña normal del buzón.</p>
-  </section>
+<div class="grid mt">
   <section class="tarjeta">
     <h3>Microsoft 365 / Outlook empresarial (Graph)</h3>
     <p class="sec">Microsoft ya no permite IMAP con contraseña. Registre una aplicación en

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+import re
 import threading
 from datetime import timedelta
 
@@ -486,6 +487,36 @@ def eliminar_regla(regla_id: int):
 def buzones():
     return render_template("buzones.html", buzones=cfg().buzones, estados=imap.estados(),
                            intervalo=cfg().intervalo_buzones)
+
+
+@bp.post("/buzones/conectar")
+@requiere_rol("admin")
+def conectar_buzon():
+    from flask import current_app
+
+    from ..conexion_buzones import RE_EMAIL, ErrorConexion, guardar, probar, servidor_sugerido
+
+    correo = request.form.get("correo", "").strip().lower()
+    clave = request.form.get("clave", "").replace(" ", "").strip()
+    servidor = request.form.get("servidor", "").strip().lower() or servidor_sugerido(correo)
+    if not RE_EMAIL.match(correo) or not clave or not re.fullmatch(r"[a-z0-9.-]+", servidor):
+        flash("Ingrese un correo válido y su contraseña de aplicación.", "error")
+        return redirect(url_for("panel.buzones"))
+    try:
+        probar(correo, clave, servidor)
+    except ErrorConexion as error:
+        flash(str(error), "error")
+        return redirect(url_for("panel.buzones"))
+    buzon = guardar(correo, clave, servidor)
+    base = current_app.extensions["mailsentry"]  # configuración viva: el buzón se vigila sin reiniciar
+    base.buzones[:] = [b for b in base.buzones if b.usuario != correo] + [buzon]
+    with db.sesion() as s:
+        registrar_evento(s, _usuario(), "buzon_conectado", f"{correo} ({servidor})")
+        s.commit()
+    vigilante.iniciar_en_segundo_plano(base)
+    flash(f"¡{correo} conectado! Se están analizando los correos de los últimos 30 días; "
+          "en unos minutos aparecerán en el panel.", "ok")
+    return redirect(url_for("panel.buzones"))
 
 
 @bp.post("/buzones/revisar")
