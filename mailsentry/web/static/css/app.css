@@ -343,6 +343,8 @@ details summary::-webkit-details-marker { display: none; }
 .pasos li.hecho { color: var(--texto-2); border-top-color: var(--texto-3); }
 
 /* ---------- acceso ---------- */
+/* Sin menú lateral (inicio de sesión): la tarjeta ocupa toda la ventana y no debe generar barra de desplazamiento */
+.app.sin-lateral .contenido { max-width: none; padding: 0; }
 .acceso { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
   background: radial-gradient(ellipse 70% 45% at 72% 38%, rgba(255,255,255,.07), transparent 70%),
               radial-gradient(ellipse at 50% 0%, #161616 0%, var(--fondo) 60%); }
