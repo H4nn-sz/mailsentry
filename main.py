@@ -307,6 +307,52 @@ def cmd_verificar_bd(args) -> None:
         print(f"  {tabla:16} {total:>6} registros")
 
 
+def cmd_conectar_bd(args) -> None:
+    """Asistente para conectar Supabase (u otro PostgreSQL) sin pegar la contraseña en ningún chat ni archivo a mano."""
+    import re
+
+    from mailsentry.migracion import copiar, verificar
+
+    print("Conectar MailSentry a Supabase\n"
+          "En Supabase: botón «Connect» → «Session pooler» → copie la URI (empieza con postgresql://).\n"
+          "Lo que escriba aquí no se muestra en pantalla.\n")
+    url = getpass.getpass("URI de conexión: ").strip()
+    if not url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
+        sys.exit("Eso no parece una URI de PostgreSQL. Debe empezar con postgresql://")
+    if "[YOUR-PASSWORD]" in url:
+        clave = getpass.getpass("Contraseña de la base de datos: ").strip()
+        url = url.replace("[YOUR-PASSWORD]", clave)
+    region = re.search(r"aws-\d+-([a-z0-9-]+)\.pooler\.supabase\.com", url)
+    if region and region.group(1) != "sa-east-1":
+        print(f"\nAVISO: este proyecto está en la región {region.group(1)}, no en São Paulo (sa-east-1). "
+              "Funciona, pero cada pantalla tardará más.")
+    url = configuracion.normalizar_url_bd(url)
+    print("\nProbando la conexión...")
+    try:
+        info = verificar(url)
+    except Exception as error:
+        sys.exit(f"No se pudo conectar:\n  {str(error).splitlines()[0]}\n"
+                 "Revise la contraseña y que haya copiado la URI del «Session pooler».")
+    print(f"Conectado: {info['version']} · latencia {info['latencia_ms']} ms")
+
+    ruta_env = configuracion.RAIZ / ".env"
+    lineas = ruta_env.read_text(encoding="utf-8").splitlines() if ruta_env.exists() else []
+    lineas = [l for l in lineas if "MAILSENTRY_DB_URL=" not in l]
+    lineas.append(f"MAILSENTRY_DB_URL={url}")
+    ruta_env.write_text("\n".join(lineas) + "\n", encoding="utf-8")
+    print(f"Guardada en {ruta_env} (solo en este equipo).")
+
+    origen = _url_sqlite("sqlite:///data/mailsentry.db")
+    ruta_origen = Path(origen.removeprefix("sqlite:///"))
+    if ruta_origen.exists() and not any(info["tablas"].get(t) for t in ("correos", "usuarios")):
+        if input("\n¿Copiar a Supabase los datos que ya tiene en este equipo? [S/n]: ").strip().lower() in ("", "s", "si", "sí"):
+            copiados = copiar(origen, url)
+            print(f"Listo: {sum(copiados.values())} registros copiados.")
+    elif any(info["tablas"].get(t) for t in ("correos", "usuarios")):
+        print("\nLa base de Supabase ya tiene datos; no copié nada para no mezclarlos.")
+    print("\nListo. Cierre y vuelva a abrir MailSentry para usar la nueva base de datos.")
+
+
 def cmd_copiar_datos(args) -> None:
     """Copia la base local (SQLite) a la configurada en MAILSENTRY_DB_URL (p. ej. Supabase)."""
     from mailsentry.migracion import copiar
@@ -399,6 +445,9 @@ def main() -> None:
 
     p = sub.add_parser("verificar-bd", help="prueba la conexión con la base de datos (p. ej. Supabase)")
     p.set_defaults(func=cmd_verificar_bd)
+
+    p = sub.add_parser("conectar-bd", help="asistente para conectar Supabase (guarda la URI en .env)")
+    p.set_defaults(func=cmd_conectar_bd)
 
     p = sub.add_parser("copiar-datos", help="copia la base local SQLite a la de MAILSENTRY_DB_URL")
     p.add_argument("--demo", action="store_true", help="copiar la base de demostración")

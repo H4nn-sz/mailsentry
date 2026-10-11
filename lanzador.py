@@ -81,6 +81,27 @@ def _imagen_icono():
     return Image.new("RGBA", (64, 64), (229, 103, 43, 255))
 
 
+def abrir_ventana(url: str) -> None:
+    """Abre el panel como una aplicación (ventana propia, sin barra de direcciones) con Edge o Chrome.
+    Si no hay ninguno, usa el navegador predeterminado."""
+    candidatos = []
+    for var in ("ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"):
+        base = os.environ.get(var)
+        if base:
+            candidatos += [Path(base) / "Microsoft/Edge/Application/msedge.exe",
+                           Path(base) / "Google/Chrome/Application/chrome.exe"]
+    for exe in candidatos:
+        if exe.exists():
+            try:
+                import subprocess
+
+                subprocess.Popen([str(exe), f"--app={url}", "--window-size=1360,860"], close_fds=True)
+                return
+            except Exception:
+                break
+    webbrowser.open(url)
+
+
 def _servir(puerto: int) -> None:
     sys.argv = ["mailsentry", "iniciar", "--sin-navegador"]
     import main
@@ -96,7 +117,7 @@ def principal() -> None:
     puerto = cargar().puerto
     url = f"http://127.0.0.1:{puerto}"
     if _puerto_abierto(puerto):  # ya hay un MailSentry abierto: solo mostrarlo
-        webbrowser.open(url)
+        abrir_ventana(url)
         return
 
     threading.Thread(target=_servir, args=(puerto,), daemon=True).start()
@@ -106,13 +127,13 @@ def principal() -> None:
         if _puerto_abierto(puerto):
             break
         time.sleep(0.25)
-    webbrowser.open(url)
+    abrir_ventana(url)
 
     try:
         import pystray
 
         def abrir(icono=None, item=None):
-            webbrowser.open(url)
+            abrir_ventana(url)
 
         def salir(icono, item):
             icono.stop()
