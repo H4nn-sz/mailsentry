@@ -13,6 +13,7 @@ from sqlalchemy import and_, delete, func, or_, select
 from werkzeug.security import generate_password_hash
 
 from .. import db, estadisticas, servicio
+from ..config import describir_url_bd
 from ..db import Correo, Empleado, Evento, ReglaLista, Usuario, registrar_evento
 from ..deteccion import ml
 from ..deteccion.datos import CORREO_GRATUITO
@@ -487,7 +488,50 @@ def eliminar_regla(regla_id: int):
 def buzones():
     return render_template("buzones.html", buzones=cfg().buzones, estados=imap.estados(),
                            intervalo=cfg().intervalo_buzones, webhook_url=cfg().webhook_url,
-                           alerta_nivel=cfg().alerta_nivel_minimo)
+                           alerta_nivel=cfg().alerta_nivel_minimo,
+                           bd_actual=("Local (en este equipo)" if cfg().db_url.startswith("sqlite")
+                                      else "Supabase / PostgreSQL · " + describir_url_bd(cfg().db_url).split("@")[-1].split("?")[0]))
+
+
+@bp.post("/basedatos/conectar")
+@requiere_rol("admin")
+def conectar_base_datos():
+    """Conecta Supabase (u otro PostgreSQL): prueba, guarda en .env y, si se pide, copia los datos de este equipo."""
+    from .. import config as configuracion
+    from ..migracion import copiar, guardar_en_env, preparar_url, verificar
+
+    try:
+        url, region = preparar_url(request.form.get("uri", ""), request.form.get("clave", ""))
+    except ValueError as error:
+        flash(str(error), "error")
+        return redirect(url_for("panel.buzones"))
+    try:
+        info = verificar(url)
+    except Exception as error:
+        flash("No se pudo conectar: " + str(error).splitlines()[0][:200] +
+              " Revise la contraseña y que haya copiado la URI del «Session pooler».", "error")
+        return redirect(url_for("panel.buzones"))
+
+    mensaje = f"Base de datos conectada ({info['version']}, {info['latencia_ms']} ms)."
+    destino_vacio = not any(info["tablas"].get(t) for t in ("correos", "usuarios"))
+    actual = cfg().db_url
+    if request.form.get("copiar") and actual.startswith("sqlite") and destino_vacio:
+        try:
+            total = sum(copiar(actual, url, al_avanzar=lambda *_: None).values())
+            mensaje += f" Se copiaron {total} registros de este equipo."
+        except Exception as error:
+            flash("La base se conectó, pero no se pudieron copiar los datos: " + str(error)[:200], "error")
+            return redirect(url_for("panel.buzones"))
+    elif request.form.get("copiar") and not destino_vacio:
+        mensaje += " La base ya tenía datos, así que no copié nada para no mezclarlos."
+    guardar_en_env(url, configuracion.RAIZ)
+    if region and region != "sa-east-1":
+        mensaje += f" Aviso: el proyecto está en {region}, no en São Paulo; cada pantalla tardará más."
+    with db.sesion() as s:
+        registrar_evento(s, _usuario(), "base_datos_config", f"Región {region or 'otra'}")
+        s.commit()
+    flash(mensaje + " Cierre MailSentry (ícono junto al reloj → Salir) y ábralo de nuevo para usarla.", "ok")
+    return redirect(url_for("panel.buzones"))
 
 
 @bp.post("/alertas/guardar")

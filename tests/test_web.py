@@ -174,6 +174,40 @@ class TestWeb(unittest.TestCase):
         self.assertEqual(n8n.recibidos[0]["evento"], "prueba")
         c.post("/alertas/guardar", data={"_csrf": token, "webhook_url": "", "nivel": "alto"})
 
+    def test_zz_base_de_datos_desde_el_panel(self):
+        from unittest import mock
+
+        from mailsentry import config as configuracion
+        from mailsentry import migracion
+        from mailsentry.db import Usuario
+
+        c = self.app.test_client()
+        with db.sesion() as bd:
+            uid = bd.query(Usuario).filter_by(rol="admin").first().id
+        with c.session_transaction() as s:
+            s["uid"] = uid
+        token = self._csrf(c, "/buzones")
+        tmp = Path(self.tmp.name) / "bd"
+        tmp.mkdir(exist_ok=True)
+        uri = "postgresql://postgres.abc:[YOUR-PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+        info = {"url": "x", "version": "PostgreSQL 17", "latencia_ms": 40, "tablas": {"correos": 0, "usuarios": 0}}
+        with mock.patch.object(configuracion, "RAIZ", tmp):
+            # Sin contraseña: pide la contraseña y no guarda nada
+            r = c.post("/basedatos/conectar", data={"_csrf": token, "uri": uri}, follow_redirects=True)
+            self.assertIn("contraseña", r.get_data(as_text=True))
+            self.assertFalse((tmp / ".env").exists())
+            # Con contraseña y base vacía: prueba, copia y guarda en .env
+            with mock.patch.object(migracion, "verificar", return_value=info),                     mock.patch.object(migracion, "copiar", return_value={"correos": 3}) as copiar:
+                r = c.post("/basedatos/conectar", data={"_csrf": token, "uri": uri, "clave": "secreta123", "copiar": "1"},
+                           follow_redirects=True)
+            html = r.get_data(as_text=True)
+            self.assertIn("Base de datos conectada", html)
+            self.assertNotIn("secreta123", html)
+            copiar.assert_called_once()
+            env = (tmp / ".env").read_text(encoding="utf-8")
+            self.assertIn("MAILSENTRY_DB_URL=postgresql+psycopg://postgres.abc:secreta123@", env)
+            self.assertIn("sslmode=require", env)
+
     def test_login_incorrecto_y_api(self):
         c = self.app.test_client()
         token = self._csrf(c, "/ingresar") if c.get("/ingresar").status_code == 200 else None

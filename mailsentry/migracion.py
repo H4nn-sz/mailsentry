@@ -80,3 +80,31 @@ def copiar(origen: str, destino: str, forzar: bool = False, al_avanzar=print) ->
     m_origen.dispose()
     m_destino.dispose()
     return copiados
+
+
+def preparar_url(uri: str, clave: str = "") -> tuple[str, str]:
+    """Valida la URI copiada de Supabase, le pone la contraseña si trae el marcador y devuelve (url, región).
+
+    Lanza ValueError con un mensaje claro si no parece una URI de PostgreSQL."""
+    import re
+
+    from .config import normalizar_url_bd
+
+    uri = uri.strip()
+    if not uri.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
+        raise ValueError("Eso no parece una URI de PostgreSQL: debe empezar con postgresql://")
+    if "[YOUR-PASSWORD]" in uri:
+        if not clave.strip():
+            raise ValueError("La URI trae el marcador [YOUR-PASSWORD]: escriba también la contraseña de la base de datos.")
+        uri = uri.replace("[YOUR-PASSWORD]", clave.strip())
+    region = re.search(r"aws-\d+-([a-z0-9-]+)\.pooler\.supabase\.com", uri)
+    return normalizar_url_bd(uri), (region.group(1) if region else "")
+
+
+def guardar_en_env(url: str, raiz) -> None:
+    """Deja MAILSENTRY_DB_URL en el .env de la instalación (solo en este equipo, nunca en config.toml)."""
+    ruta = raiz / ".env"
+    lineas = ruta.read_text(encoding="utf-8").splitlines() if ruta.exists() else []
+    lineas = [linea for linea in lineas if "MAILSENTRY_DB_URL=" not in linea]
+    lineas.append(f"MAILSENTRY_DB_URL={url}")
+    ruta.write_text("\n".join(lineas) + "\n", encoding="utf-8")

@@ -309,24 +309,22 @@ def cmd_verificar_bd(args) -> None:
 
 def cmd_conectar_bd(args) -> None:
     """Asistente para conectar Supabase (u otro PostgreSQL) sin pegar la contraseña en ningún chat ni archivo a mano."""
-    import re
-
     from mailsentry.migracion import copiar, verificar
 
     print("Conectar MailSentry a Supabase\n"
           "En Supabase: botón «Connect» → «Session pooler» → copie la URI (empieza con postgresql://).\n"
           "Lo que escriba aquí no se muestra en pantalla.\n")
-    url = getpass.getpass("URI de conexión: ").strip()
-    if not url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
-        sys.exit("Eso no parece una URI de PostgreSQL. Debe empezar con postgresql://")
-    if "[YOUR-PASSWORD]" in url:
-        clave = getpass.getpass("Contraseña de la base de datos: ").strip()
-        url = url.replace("[YOUR-PASSWORD]", clave)
-    region = re.search(r"aws-\d+-([a-z0-9-]+)\.pooler\.supabase\.com", url)
-    if region and region.group(1) != "sa-east-1":
-        print(f"\nAVISO: este proyecto está en la región {region.group(1)}, no en São Paulo (sa-east-1). "
+    from mailsentry.migracion import guardar_en_env, preparar_url
+
+    uri = getpass.getpass("URI de conexión: ")
+    clave = getpass.getpass("Contraseña de la base de datos (Enter si la URI ya la incluye): ") if "[YOUR-PASSWORD]" in uri else ""
+    try:
+        url, region = preparar_url(uri, clave)
+    except ValueError as error:
+        sys.exit(str(error))
+    if region and region != "sa-east-1":
+        print(f"\nAVISO: este proyecto está en la región {region}, no en São Paulo (sa-east-1). "
               "Funciona, pero cada pantalla tardará más.")
-    url = configuracion.normalizar_url_bd(url)
     print("\nProbando la conexión...")
     try:
         info = verificar(url)
@@ -335,12 +333,8 @@ def cmd_conectar_bd(args) -> None:
                  "Revise la contraseña y que haya copiado la URI del «Session pooler».")
     print(f"Conectado: {info['version']} · latencia {info['latencia_ms']} ms")
 
-    ruta_env = configuracion.RAIZ / ".env"
-    lineas = ruta_env.read_text(encoding="utf-8").splitlines() if ruta_env.exists() else []
-    lineas = [l for l in lineas if "MAILSENTRY_DB_URL=" not in l]
-    lineas.append(f"MAILSENTRY_DB_URL={url}")
-    ruta_env.write_text("\n".join(lineas) + "\n", encoding="utf-8")
-    print(f"Guardada en {ruta_env} (solo en este equipo).")
+    guardar_en_env(url, configuracion.RAIZ)
+    print(f"Guardada en {configuracion.RAIZ / '.env'} (solo en este equipo).")
 
     origen = _url_sqlite("sqlite:///data/mailsentry.db")
     ruta_origen = Path(origen.removeprefix("sqlite:///"))

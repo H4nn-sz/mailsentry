@@ -95,6 +95,26 @@
 </section>
 {% endif %}
 
+{% if tiene_rol('admin') %}
+<section class="tarjeta mt">
+  <header><div><div class="etiqueta-hud">Base de datos</div><h2>Guardar en Supabase (opcional)</h2>
+    <p>Ahora guarda en: <b>{{ bd_actual }}</b>. Para la mayoría de las MYPE la base local es suficiente.</p></div></header>
+  <form method="post" action="{{ url_for('panel.conectar_base_datos') }}" autocomplete="off">
+    {{ csrf_input() }}
+    <div class="campo"><label for="d-uri">URI de conexión</label>
+      <input id="d-uri" type="password" name="uri" required autocomplete="new-password"
+             placeholder="postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"></div>
+    <div class="campo"><label for="d-clave">Contraseña de la base de datos (si la URI trae [YOUR-PASSWORD])</label>
+      <input id="d-clave" type="password" name="clave" autocomplete="new-password"></div>
+    <label class="check"><input type="checkbox" name="copiar" value="1" checked> Copiar los datos que ya tengo en este equipo</label>
+    <button class="btn btn-primario" type="submit" style="margin-top:10px">Probar y conectar</button>
+  </form>
+  <p class="muted" style="margin:12px 0 0;font-size:12.5px">En Supabase: botón <b>Connect → Session pooler</b>.
+    Cree el proyecto en la región <b>South America (São Paulo)</b> para que cargue rápido. La URI queda guardada
+    solo en este equipo.</p>
+</section>
+{% endif %}
+
 <div class="grid mt">
   <section class="tarjeta">
     <h3>Microsoft 365 / Outlook empresarial (Graph)</h3>
