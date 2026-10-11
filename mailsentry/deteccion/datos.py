@@ -103,7 +103,8 @@ MARCAS: dict[str, dict] = {
                "dominios": ["google.com", "gmail.com", "googlemail.com", "google.com.pe", "youtube.com"]},
     "Apple": {"patrones": ["apple", "icloud", "apple id"], "dominios": ["apple.com", "icloud.com", "me.com"]},
     "PayPal": {"patrones": ["paypal"], "dominios": ["paypal.com"]},
-    "Amazon": {"patrones": ["amazon", "aws"], "dominios": ["amazon.com", "amazon.es", "amazon.com.mx", "aws.amazon.com"]},
+    "Amazon": {"patrones": ["amazon", "aws"], "dominios": ["amazon.com", "amazon.es", "amazon.com.mx", "aws.amazon.com",
+                                                      "amazonaws.com", "amazonses.com", "awstrack.me"]},
     "Netflix": {"patrones": ["netflix"], "dominios": ["netflix.com"]},
     "Mercado Libre": {"patrones": ["mercado libre", "mercadolibre", "mercado pago", "mercadopago"],
                       "dominios": ["mercadolibre.com.pe", "mercadolibre.com", "mercadopago.com", "mercadopago.com.pe"]},
@@ -239,7 +240,7 @@ GRUPOS_FRASES: dict[str, dict] = {
         "base": 12, "extra": 12, "maximo": 40, "severidad": "alta",
         "categorias": {"extorsion": 1.0},
         "frases": [
-            "bitcoin", "btc", "billetera", "monedero", "wallet", "webcam", "camara web", "video intimo",
+            "bitcoin", "btc", "billetera de bitcoin", "billetera bitcoin", "billetera btc", "bitcoin wallet", "webcam", "camara web", "video intimo",
             "contenido para adultos", "sitios para adultos", "pornografia", "hackee tu", "hackeado tu",
             "tengo acceso a tu", "tengo acceso a su", "tus contactos", "sus contactos", "grabe un video",
             "te grabe", "i recorded", "your device was hacked", "malware en tu dispositivo",
@@ -282,3 +283,14 @@ RUTAS_SOSPECHOSAS = (
     "account", "cuenta", "update", "actualizar", "confirm", "banking", "webscr", "wp-admin",
     "wp-includes", "wp-content", "auth", "session", "token", "unlock", "desbloqueo", "recovery",
 )
+
+
+# Plataformas de pago, facturación y envío que mandan correo en nombre de otras empresas: el Reply-To apunta
+# al comercio, no a ellas. Con SPF/DKIM válidos, un Reply-To distinto es lo esperado y no indica fraude.
+PLATAFORMAS_TRANSACCIONALES = {
+    "stripe.com", "paypal.com", "mercadopago.com", "mercadopago.com.pe", "mercadolibre.com", "ebanx.com",
+    "culqi.com", "niubiz.com.pe", "izipay.pe", "pagoefectivo.pe", "shopify.com", "shopifyemail.com",
+    "squareup.com", "paddle.com", "gumroad.com", "hotmart.com", "docusign.net", "docusign.com",
+    "calendly.com", "eventbrite.com", "zendesk.com", "freshdesk.com", "intercom.io", "hubspotemail.net",
+    "mailchimp.com", "mcsv.net", "sendgrid.net", "amazonses.com", "github.com",
+}

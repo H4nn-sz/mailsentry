@@ -127,7 +127,8 @@ def analizar(correo: CorreoParseado, ctx: Contexto) -> list[Indicador]:
             marcar("URL_PUNYCODE", visible)
         if host in ACORTADORES:
             marcar("URL_ACORTADA", visible)
-        if any(es_subdominio_de(host, h) for h in HOSTING_ABUSADO):
+        es_recurso = partes.path.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".css", ".woff", ".woff2", ".ttf"))
+        if not es_recurso and any(es_subdominio_de(host, h) for h in HOSTING_ABUSADO):
             marcar("URL_HOSTING_GRATUITO", visible)
         if tld(host) in TLD_SOSPECHOSOS:
             marcar("URL_TLD", visible)

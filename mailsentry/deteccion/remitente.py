@@ -7,7 +7,7 @@ import re
 from ..parser import CorreoParseado
 from ..util import normalizar
 from .contexto import Contexto
-from .datos import CORREO_GRATUITO, PALABRAS_CORPORATIVAS, TLD_SOSPECHOSOS
+from .datos import CORREO_GRATUITO, PALABRAS_CORPORATIVAS, PLATAFORMAS_TRANSACCIONALES, TLD_SOSPECHOSOS
 from .dominios import (
     buscar_parecido,
     dominio_de_marca,
@@ -138,10 +138,18 @@ def analizar(correo: CorreoParseado, ctx: Contexto) -> list[Indicador]:
         dom_resp = correo.responder_a.rsplit("@", 1)[1]
         if dominio_registrable(dom_resp) != dominio_registrable(dominio) and not ctx.es_propio(dom_resp):
             gratis = dom_resp in CORREO_GRATUITO
-            ind.append(Indicador("RESPONDER_A_DISTINTO", "Las respuestas van a otra dirección",
-                                 f"Si responde, su mensaje irá a {correo.responder_a}"
-                                 f"{' (correo gratuito)' if gratis else ''} y no a {email}.",
-                                 25 if gratis else 15, "alta" if gratis else "media", BEC))
+            aut = correo.autenticacion or {}
+            if (dominio_registrable(dominio) in PLATAFORMAS_TRANSACCIONALES and not gratis
+                    and aut.get("dkim") == "pass" and aut.get("spf") == "pass"):
+                # Stripe, PayPal, PagoEfectivo... envían en nombre del comercio: el Reply-To distinto es lo normal
+                ind.append(Indicador("RESPONDER_A_PLATAFORMA", "Respuestas al comercio (normal en plataformas de pago)",
+                                     f"{dominio_registrable(dominio)} envía en nombre de otra empresa; las respuestas "
+                                     f"van a {correo.responder_a}.", 0, "info"))
+            else:
+                ind.append(Indicador("RESPONDER_A_DISTINTO", "Las respuestas van a otra dirección",
+                                     f"Si responde, su mensaje irá a {correo.responder_a}"
+                                     f"{' (correo gratuito)' if gratis else ''} y no a {email}.",
+                                     25 if gratis else 15, "alta" if gratis else "media", BEC))
 
     if not propio and dominio and dominio_registrable(dominio) not in ctx.dominios_conocidos and dominio not in CORREO_GRATUITO:
         ind.append(Indicador("REMITENTE_NUEVO", "Primer contacto con este dominio",

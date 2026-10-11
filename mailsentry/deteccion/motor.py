@@ -43,7 +43,7 @@ def _sinergias(ind: list[Indicador]) -> list[Indicador]:
                                "Combina una identidad falsa o desviada con una solicitud de pago, cambio de cuenta o "
                                "favor urgente: patrón clásico de fraude del CEO.", 20, "critica",
                                {"bec": 0.6, "fraude_pagos": 0.4}))
-    if "KW_QR" in codigos and codigos & {"KW_CREDENCIALES", "KW_URGENCIA", "REMITENTE_NUEVO"}:
+    if "KW_QR" in codigos and codigos & {"KW_CREDENCIALES", "KW_URGENCIA"}:
         extra.append(Indicador("COMBO_QR", "Código QR para iniciar sesión o reactivar la cuenta",
                                "El enlace va dentro de una imagen QR para que el celular lo abra fuera de los "
                                "filtros de la empresa (quishing).", 15, "alta", {"credenciales": 1.0}))

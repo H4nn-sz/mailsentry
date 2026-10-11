@@ -130,6 +130,21 @@ LEGITIMOS = [
 ]
 
 # Legítimo, pero debe ir a revisión (no a "legítimo" ni a "phishing"): política de verificación.
+# Recibos y avisos de pago reales que antes se marcaban como phishing (falsos positivos de un Gmail real)
+LEGITIMOS += [
+    ("Recibo de Stripe a nombre del comercio (Reply-To distinto, imagen en S3)", eml(
+        "Cw Labs Pvt Ltd <invoice+statements@stripe.com>", f"sofia.vargas@{D}", "Tu recibo de Cw Labs Pvt Ltd, n.º 2209-6091",
+        '<p>Recibo de Cw Labs Pvt Ltd. Total pagado: US$ 5.00. Invoice 2209-6091.</p>'
+        '<img src="https://stripe-images.s3.amazonaws.com/emails/invoices_invoice_illustration.png">'
+        '<a href="https://pay.stripe.com/invoice/acct_1/test">Ver factura</a> <a href="http://www.cyberwarfare.live">www.cyberwarfare.live</a>',
+        HTML).replace(b"\nTo:", b"\nReply-To: support@cyberwarfare.live\nTo:", 1)),
+    ("PagoEfectivo: orden pendiente con QR y billetera digital", eml(
+        "PagoEfectivo <no-reply@pagoefectivo.pe>", f"sofia.vargas@{D}", "Tienes una orden pendiente de pago (PagoEfectivo)",
+        '<p>Tu compra está lista para pagar. Escanea el QR desde la billetera digital de tu banco o Yape y realiza un pago '
+        'antes de que venza. Puedes pagar con tu wallet favorita.</p>'
+        '<a href="https://pagoefectivo.pe/comprar-y-pagar.html">Cómo pagar</a>', HTML)),
+]
+
 A_REVISION = [
     ("Gerente escribe de verdad desde su Gmail", eml(
         "Carlos Mendoza <carlosmendoza.personal@gmail.com>", f"lucia.paredes@{D}", "Propuesta del cliente",
