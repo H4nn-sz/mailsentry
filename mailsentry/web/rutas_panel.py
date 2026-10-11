@@ -486,7 +486,36 @@ def eliminar_regla(regla_id: int):
 @requiere_rol("lector")
 def buzones():
     return render_template("buzones.html", buzones=cfg().buzones, estados=imap.estados(),
-                           intervalo=cfg().intervalo_buzones)
+                           intervalo=cfg().intervalo_buzones, webhook_url=cfg().webhook_url,
+                           alerta_nivel=cfg().alerta_nivel_minimo)
+
+
+@bp.post("/alertas/guardar")
+@requiere_rol("admin")
+def guardar_alertas():
+    url = request.form.get("webhook_url", "").strip()
+    nivel = request.form.get("nivel", "alto")
+    local = url.startswith(("http://localhost", "http://127.0.0.1"))
+    if url and not (url.startswith("https://") or local):
+        flash("La dirección debe empezar con https:// (copie la «Production URL» del nodo Webhook de n8n).", "error")
+        return redirect(url_for("panel.buzones"))
+    with db.sesion() as s:
+        db.guardar_ajuste(s, "webhook_url", url)
+        db.guardar_ajuste(s, "alerta_nivel_minimo", nivel if nivel in ("medio", "alto", "critico") else "alto")
+        registrar_evento(s, _usuario(), "alertas_config", "Webhook " + ("configurado" if url else "quitado"))
+        s.commit()
+    flash("Alertas guardadas." if url else "Alertas desactivadas.", "ok")
+    return redirect(url_for("panel.buzones"))
+
+
+@bp.post("/alertas/probar")
+@requiere_rol("admin")
+def probar_alertas():
+    from .. import alertas
+
+    ok, mensaje = alertas.enviar_prueba(cfg())
+    flash(mensaje, "ok" if ok else "error")
+    return redirect(url_for("panel.buzones"))
 
 
 @bp.post("/buzones/conectar")

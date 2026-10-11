@@ -25,3 +25,8 @@ CONTEXTO.md
 
 # Videos generados
 medios/
+
+# Programa empaquetado
+dist/
+build/
+*.spec

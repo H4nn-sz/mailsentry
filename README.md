@@ -64,6 +64,26 @@ base de datos, así que no hay que editar archivos para empezar.
 2. **Listas → dominios propios**: agregue todos los dominios de la empresa.
 3. Revise las amenazas: **Confirmar phishing** / **Es legítimo**. Eso entrena la IA.
 
+## Programa instalable para Windows (.exe)
+
+Para usuarios sin Python: `MailSentry.exe` abre el panel, deja un ícono junto al reloj (abrir o salir) y crea un
+acceso directo en el escritorio. Los datos de la empresa quedan en `%LOCALAPPDATA%\MailSentry`.
+
+```bash
+.venv\Scripts\python.exe -m pip install pyinstaller pystray
+.venv\Scripts\python.exe herramientas/construir_exe.py     # resultado: dist/MailSentry/MailSentry.exe
+```
+
+Windows puede mostrar «SmartScreen» la primera vez porque el programa no está firmado digitalmente:
+pulse *Más información → Ejecutar de todos modos*.
+
+## Alertas automáticas con n8n
+
+En **Buzones → Avisos automáticos** pegue la «Production URL» de un nodo *Webhook* de n8n y pulse *Enviar prueba*.
+Cada phishing llega como JSON con `evento`, `nivel`, `puntaje`, `categoria_nombre`, `remitente_email`, `asunto`,
+`correo_id`, etc. En `herramientas/n8n-alerta-phishing.json` hay un flujo listo para importar (Webhook → Gmail).
+También sirve con Teams, Slack, Discord y Google Chat.
+
 ## Qué detecta
 
 | Capa | Ejemplos |

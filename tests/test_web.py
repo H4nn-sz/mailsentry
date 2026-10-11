@@ -152,6 +152,28 @@ class TestWeb(unittest.TestCase):
         self.assertIn('password_env = "MAILSENTRY_PASS_PRUEBA_GMAIL_COM"', (tmp / "config.toml").read_text(encoding="utf-8"))
         self.app.extensions["mailsentry"].buzones.clear()
 
+    def test_zz_alertas_n8n_desde_el_panel(self):
+        from tests.test_alertas import _Receptor
+
+        c = self.app.test_client()
+        from mailsentry.db import Usuario
+        with db.sesion() as bd:
+            uid = bd.query(Usuario).filter_by(rol="admin").first().id
+        with c.session_transaction() as s:
+            s["uid"] = uid
+        token = self._csrf(c, "/buzones")
+        # Una dirección sin https se rechaza; una local de n8n se acepta y se puede probar
+        r = c.post("/alertas/guardar", data={"_csrf": token, "webhook_url": "ftp://x", "nivel": "alto"}, follow_redirects=True)
+        self.assertIn("https://", r.get_data(as_text=True))
+        with _Receptor() as n8n:
+            c.post("/alertas/guardar", data={"_csrf": token, "webhook_url": n8n.url, "nivel": "critico"})
+            html = c.get("/buzones").get_data(as_text=True)
+            self.assertIn(n8n.url, html)
+            r = c.post("/alertas/probar", data={"_csrf": token}, follow_redirects=True)
+            self.assertIn("Prueba enviada", r.get_data(as_text=True))
+        self.assertEqual(n8n.recibidos[0]["evento"], "prueba")
+        c.post("/alertas/guardar", data={"_csrf": token, "webhook_url": "", "nivel": "alto"})
+
     def test_login_incorrecto_y_api(self):
         c = self.app.test_client()
         token = self._csrf(c, "/ingresar") if c.get("/ingresar").status_code == 200 else None

@@ -6,14 +6,24 @@ import os
 import re
 import secrets
 import shutil
+import sys
 import tomllib
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
+# Instalado como .exe, el programa vive en una carpeta de solo lectura (Archivos de programa):
+# los datos de la empresa van a %LOCALAPPDATA%\MailSentry y la plantilla viaja dentro del paquete.
+EMPAQUETADO = bool(getattr(sys, "frozen", False))
+if EMPAQUETADO:
+    RAIZ = Path(os.environ.get("MAILSENTRY_HOME") or Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "MailSentry")
+    RAIZ.mkdir(parents=True, exist_ok=True)
+    RECURSOS = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+else:
+    RAIZ = Path(__file__).resolve().parent.parent
+    RECURSOS = RAIZ
 DIR_DATOS = RAIZ / "data"
 RUTA_CONFIG = RAIZ / "config.toml"
-RUTA_CONFIG_EJEMPLO = RAIZ / "config.example.toml"
+RUTA_CONFIG_EJEMPLO = RECURSOS / "config.example.toml"
 
 NIVELES = ("bajo", "medio", "alto", "critico")
 
@@ -83,6 +93,11 @@ class Config:
             cambios["empresa_nombre"] = str(ajustes["empresa_nombre"])
         if isinstance(ajustes.get("ubicacion"), (list, tuple)) and len(ajustes["ubicacion"]) == 2:
             cambios["ubicacion"] = (float(ajustes["ubicacion"][0]), float(ajustes["ubicacion"][1]))
+        url = str(ajustes.get("webhook_url") or "").strip()
+        if url:
+            cambios["webhook_url"] = url
+        if ajustes.get("alerta_nivel_minimo") in NIVELES:
+            cambios["alerta_nivel_minimo"] = ajustes["alerta_nivel_minimo"]
         return replace(self, **cambios) if cambios else self
 
     @property

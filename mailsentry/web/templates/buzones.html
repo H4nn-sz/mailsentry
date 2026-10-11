@@ -71,6 +71,30 @@
   {% endif %}
 </section>
 
+
+{% if tiene_rol('admin') %}
+<section class="tarjeta mt">
+  <header><div><div class="etiqueta-hud">Alertas</div><h2>Avisos automáticos (n8n, Teams, Slack)</h2>
+    <p>Cuando llegue un phishing, MailSentry avisa a esta dirección con todos los datos del correo.</p></div></header>
+  <form method="post" action="{{ url_for('panel.guardar_alertas') }}" autocomplete="off">
+    {{ csrf_input() }}
+    <div class="campo"><label for="a-url">Dirección del webhook</label>
+      <input id="a-url" type="url" name="webhook_url" value="{{ webhook_url }}" placeholder="https://su-n8n.app.n8n.cloud/webhook/mailsentry"></div>
+    <div class="campo"><label for="a-nivel">Avisar desde el nivel</label>
+      <select id="a-nivel" name="nivel">
+        <option value="medio" {{ 'selected' if alerta_nivel == 'medio' }}>Medio y superiores</option>
+        <option value="alto" {{ 'selected' if alerta_nivel == 'alto' }}>Alto y crítico (recomendado)</option>
+        <option value="critico" {{ 'selected' if alerta_nivel == 'critico' }}>Solo crítico</option>
+      </select></div>
+    <button class="btn btn-primario" type="submit">Guardar</button>
+  </form>
+  {% if webhook_url %}
+  <form method="post" action="{{ url_for('panel.probar_alertas') }}" style="margin-top:10px">{{ csrf_input() }}
+    <button class="btn" type="submit">Enviar prueba</button></form>
+  {% endif %}
+</section>
+{% endif %}
+
 <div class="grid mt">
   <section class="tarjeta">
     <h3>Microsoft 365 / Outlook empresarial (Graph)</h3>

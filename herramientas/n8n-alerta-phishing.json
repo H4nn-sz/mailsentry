@@ -1,0 +1,37 @@
+{
+  "name": "MailSentry - alerta de phishing por correo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mailsentry",
+        "options": {}
+      },
+      "id": "5f3c1a10-0000-4000-8000-000000000001",
+      "name": "MailSentry",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "mailsentry"
+    },
+    {
+      "parameters": {
+        "sendTo": "tu-correo@ejemplo.com",
+        "subject": "=🚨 {{ $json.body.nivel.toUpperCase() }} · {{ $json.body.categoria_nombre }} · {{ $json.body.asunto }}",
+        "message": "=<h3>MailSentry detectó un correo peligroso en {{ $json.body.empresa }}</h3><p><b>Riesgo:</b> {{ $json.body.nivel }} ({{ $json.body.puntaje }}/100)<br><b>Tipo:</b> {{ $json.body.categoria_nombre }}<br><b>De:</b> {{ $json.body.remitente_nombre }} &lt;{{ $json.body.remitente_email }}&gt;<br><b>Para:</b> {{ $json.body.destinatario }}<br><b>Asunto:</b> {{ $json.body.asunto }}</p><p>Revise el correo #{{ $json.body.correo_id }} en el panel de MailSentry.</p>",
+        "options": {}
+      },
+      "id": "5f3c1a10-0000-4000-8000-000000000002",
+      "name": "Avisar por Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [520, 300]
+    }
+  ],
+  "connections": {
+    "MailSentry": {
+      "main": [[{ "node": "Avisar por Gmail", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
